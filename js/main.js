@@ -2,14 +2,12 @@
   const translations = {
     en: {
       'nav.home': 'Home',
-      'nav.platform': 'Platform',
       'nav.sc': 'SC Consultancy',
       'nav.dev': 'Development',
       'nav.ops': 'Operational Support',
       'nav.work': 'Our Work',
       'nav.login': 'Client log in',
       'nav.contact': 'Contact',
-      'nav.enterPlatform': 'Enter Platform Experience',
       'hero.eyebrow': 'Private enterprise advisory',
       'hero.tagline': 'Operational excellence, engineered with elegance.',
       'hero.ctaPrimary': 'Plan a strategic consultation',
@@ -30,14 +28,12 @@
     },
     nl: {
       'nav.home': 'Home',
-      'nav.platform': 'Platform',
       'nav.sc': 'SC Consultancy',
       'nav.dev': 'Development',
       'nav.ops': 'Operationele Ondersteuning',
       'nav.work': 'Ons Werk',
       'nav.login': 'Client login',
       'nav.contact': 'Contact',
-      'nav.enterPlatform': 'Ga naar Platform Experience',
       'hero.eyebrow': 'Private enterprise advisory',
       'hero.tagline': 'Operationele excellentie, ontworpen met elegantie.',
       'hero.ctaPrimary': 'Plan een strategisch overleg',
@@ -96,9 +92,15 @@
   const savedTheme = localStorage.getItem('ascentraTheme') || 'dark';
   const savedPalette = localStorage.getItem('ascentraPalette') || 'royal';
 
-  document.querySelectorAll('.ui-lang').forEach((button) => button.addEventListener('click', () => applyLanguage(button.dataset.lang)));
-  document.querySelectorAll('.ui-theme').forEach((button) => button.addEventListener('click', () => applyTheme(button.dataset.theme)));
-  document.querySelectorAll('.ui-palette').forEach((button) => button.addEventListener('click', () => applyPalette(button.dataset.palette)));
+  document.querySelectorAll('.ui-lang').forEach((button) => {
+    button.addEventListener('click', () => applyLanguage(button.dataset.lang));
+  });
+  document.querySelectorAll('.ui-theme').forEach((button) => {
+    button.addEventListener('click', () => applyTheme(button.dataset.theme));
+  });
+  document.querySelectorAll('.ui-palette').forEach((button) => {
+    button.addEventListener('click', () => applyPalette(button.dataset.palette));
+  });
 
   applyLanguage(savedLang);
   applyTheme(savedTheme);
@@ -107,8 +109,10 @@
   document.querySelectorAll('.platform-card').forEach((card) => {
     card.addEventListener('mousemove', (event) => {
       const rect = card.getBoundingClientRect();
-      card.style.setProperty('--x', `${((event.clientX - rect.left) / rect.width) * 100}%`);
-      card.style.setProperty('--y', `${((event.clientY - rect.top) / rect.height) * 100}%`);
+      const x = ((event.clientX - rect.left) / rect.width) * 100;
+      const y = ((event.clientY - rect.top) / rect.height) * 100;
+      card.style.setProperty('--x', `${x}%`);
+      card.style.setProperty('--y', `${y}%`);
     });
   });
 })();
