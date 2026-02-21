@@ -8,25 +8,30 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <div id="splashscreen" class="splashscreen" aria-hidden="true">
-    <div class="splash-inner">
-      <p>Private Enterprise Systems</p>
-      <h1>Ascentra</h1>
-      <span></span>
-    </div>
-  </div>
-
   <header class="site-header">
     <div class="nav-wrap">
       <a class="brand" href="index.html">Ascentra</a>
+
       <div class="style-controls" aria-label="UI controls">
-        <div class="control-group" role="group" aria-label="Language"><button class="ui-dot ui-lang" data-lang="en" aria-label="English">EN</button><button class="ui-dot ui-lang" data-lang="nl" aria-label="Nederlands">NL</button></div>
-        <div class="control-group" role="group" aria-label="Theme"><button class="ui-dot ui-theme" data-theme="dark" aria-label="Dark theme"></button><button class="ui-dot ui-theme" data-theme="bright" aria-label="Bright theme"></button></div>
-        <div class="control-group" role="group" aria-label="Palette"><button class="ui-dot ui-palette" data-palette="royal" aria-label="Royal Navy"></button><button class="ui-dot ui-palette" data-palette="heritage" aria-label="Heritage Brown"></button><button class="ui-dot ui-palette" data-palette="midnight" aria-label="Midnight Steel"></button></div>
+        <div class="control-group" role="group" aria-label="Language">
+          <button class="ui-dot ui-lang" data-lang="en" aria-label="English">EN</button>
+          <button class="ui-dot ui-lang" data-lang="nl" aria-label="Nederlands">NL</button>
+        </div>
+
+        <div class="control-group" role="group" aria-label="Theme">
+          <button class="ui-dot ui-theme" data-theme="dark" aria-label="Dark theme"></button>
+          <button class="ui-dot ui-theme" data-theme="bright" aria-label="Bright theme"></button>
+        </div>
+
+        <div class="control-group" role="group" aria-label="Palette">
+          <button class="ui-dot ui-palette" data-palette="royal" aria-label="Royal Navy"></button>
+          <button class="ui-dot ui-palette" data-palette="heritage" aria-label="Heritage Brown"></button>
+          <button class="ui-dot ui-palette" data-palette="midnight" aria-label="Midnight Steel"></button>
+        </div>
       </div>
+
       <nav class="nav-links">
         <a href="index.html" data-i18n="nav.home">Home</a>
-        <a href="platform.html" data-i18n="nav.platform">Platform</a>
         <a href="ascentra-sc-consultancy.html" data-i18n="nav.sc">SC Consultancy</a>
         <a href="ascentra-development.html" data-i18n="nav.dev">Development</a>
         <a href="ascentra-operational-support.html" data-i18n="nav.ops">Operational Support</a>
@@ -34,7 +39,6 @@
         <a href="client-login.html" data-i18n="nav.login">Client log in</a>
         <a href="contact.html" data-i18n="nav.contact">Contact</a>
       </nav>
-      <a class="header-client-link" href="client-login.html">Client login</a>
     </div>
   </header>
 
@@ -47,7 +51,7 @@
       <div class="hero-content">
         <p class="eyebrow" data-i18n="hero.eyebrow">Private enterprise advisory</p>
         <h1>Ascentra</h1>
-        <p data-i18n="hero.tagline">Operational excellence, engineered with elegance.</p>
+        <p data-editable-tagline data-i18n="hero.tagline">Operational excellence, engineered with elegance.</p>
         <div>
           <a class="btn btn-primary" href="contact.html" data-i18n="hero.ctaPrimary">Plan a strategic consultation</a>
           <a class="btn btn-secondary" href="our-work.html" data-i18n="hero.ctaSecondary">View our work</a>
@@ -55,51 +59,62 @@
       </div>
     </section>
 
-    <section class="section preface">
-      <div class="grid">
-        <article class="card"><h3>Executive clarity</h3><p>Board-level dashboards and narrative insight that connect operational signal to strategic intent.</p></article>
-        <article class="card"><h3>Precision operations</h3><p>Direct Labour optimization, automation orchestration and SLA-driven control loops.</p></article>
-        <article class="card"><h3>Scaled transformation</h3><p>Multidisciplinary delivery teams that blend strategy, engineering and floor-level execution.</p></article>
+    <!-- Platform Experience embed (hooked to js/platform-experience.js) -->
+    <section class="section" data-platform-experience>
+      <div class="selector-head">
+        <p class="eyebrow">Platform Experience</p>
+        <h2>In-page app-shell tour</h2>
+        <p class="section-intro">Explore the platform in an app-like tour (Overview, Modules, Use cases, ROI). Deep links work via <code>?xp=...</code>.</p>
       </div>
+
+      <div class="xp-toolbar" role="navigation" aria-label="Platform Experience routes">
+        <button type="button" data-route="overview">Overview</button>
+        <button type="button" data-route="modules">Modules</button>
+        <button type="button" data-route="use-cases">Use cases</button>
+        <button type="button" data-route="roi">ROI</button>
+        <a class="btn btn-secondary" href="platform.html">Open full page →</a>
+      </div>
+
+      <div class="experience-content" id="experience-content" aria-live="polite"></div>
     </section>
 
-    <section class="section impact-band">
-      <div><h2>Built for organizations that value control, performance, and long-term institutional quality.</h2><p>Ascentra combines advanced platform engineering with measurable warehouse and operations outcomes.</p></div>
-      <div class="xp-kpis">
-        <div class="kpi-tile"><small>Average UPH uplift</small><strong>+19%</strong></div>
-        <div class="kpi-tile"><small>Inventory accuracy</small><strong>99.2%</strong></div>
-        <div class="kpi-tile"><small>Incident reduction</small><strong>-31%</strong></div>
-        <div class="kpi-tile"><small>Deployment pace</small><strong>8 wks</strong></div>
+    <section class="section selector-wrap" id="platform-selector">
+      <div class="selector-head">
+        <p class="eyebrow" data-i18n="selector.eyebrow">Platform ecosystem</p>
+        <h2 data-i18n="selector.title">State-of-the-art multi-platform selector</h2>
+        <p class="section-intro" data-i18n="selector.intro">Discover our flagship delivery environments engineered for strategic control, precision execution, and operational dominance.</p>
       </div>
-    </section>
+      <div class="platform-selector">
+        <a class="platform-card" href="ascentra-development.html">
+          <span class="platform-shimmer"></span>
+          <span class="platform-label" data-i18n="selector.operisLabel">Operis platform</span>
+          <h3>Operis</h3>
+          <p data-i18n="selector.operisText">Enterprise-grade orchestration for product acceleration, architecture modernization, and board-level delivery visibility.</p>
+          <span class="platform-cta" data-i18n="selector.operisCta">Enter Operis →</span>
+        </a>
 
-    <section class="platform-experience section" id="platform-experience" data-platform-experience>
-      <div class="experience-shell">
-        <div class="experience-topbar">
-          <div><p class="experience-eyebrow">Ascentra Platform Experience</p><h2>Operis · Astra · SCS Consultancy</h2></div>
-          <div class="experience-route-pills">
-            <button data-route="platforms">Platforms</button>
-            <button data-route="operis">Operis</button>
-            <button data-route="astra">Astra</button>
-            <button data-route="scs">SCS Consultancy</button>
-          </div>
-        </div>
+        <a class="platform-card" href="ascentra-operational-support.html">
+          <span class="platform-shimmer"></span>
+          <span class="platform-label" data-i18n="selector.astraLabel">Astra platform</span>
+          <h3>Astra</h3>
+          <p data-i18n="selector.astraText">Operational command layer designed for continuity, elite support response, and precision service governance.</p>
+          <span class="platform-cta" data-i18n="selector.astraCta">Enter Astra →</span>
+        </a>
 
-        <div class="experience-body">
-          <aside class="experience-sidenav">
-            <button data-route="platforms">01 · Platform overview</button>
-            <button data-route="operis">02 · Operis dashboard</button>
-            <button data-route="astra">03 · Astra drone mission</button>
-            <button data-route="scs">04 · SCS team</button>
-          </aside>
-          <section class="experience-content" id="experience-content"></section>
-        </div>
+        <a class="platform-card" href="ascentra-sc-consultancy.html">
+          <span class="platform-shimmer"></span>
+          <span class="platform-label" data-i18n="selector.scLabel">Ascentra SC consultancy</span>
+          <h3>SC Consultancy</h3>
+          <p data-i18n="selector.scText">High-consequence strategic counsel for executives managing transformation, portfolio choices, and market power plays.</p>
+          <span class="platform-cta" data-i18n="selector.scCta">Enter Consultancy →</span>
+        </a>
       </div>
     </section>
   </main>
 
   <footer class="site-footer" data-i18n="footer">© Ascentra. Private advisory and enterprise delivery.</footer>
+
   <script src="js/main.js"></script>
-  <script src="js/platform-experience.js"></script>
+  <script src="js/platform-experience.js" defer></script>
 </body>
 </html>

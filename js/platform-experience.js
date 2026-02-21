@@ -4,438 +4,142 @@
 
   const content = document.getElementById('experience-content');
   const routeButtons = root.querySelectorAll('[data-route]');
-  const defaultRoute = 'platforms';
-
-  const pickerData = [
-    { name: 'A. Vermeer', rate: 146, role: 'Pick to light' },
-    { name: 'B. Janssen', rate: 131, role: 'Decanting' },
-    { name: 'C. Visser', rate: 112, role: 'Replenishment truck' },
-    { name: 'D. Bakker', rate: 98, role: 'Loading' },
-    { name: 'E. Smit', rate: 124, role: 'Pick to light' },
-    { name: 'F. de Jong', rate: 89, role: 'Decanting' },
-    { name: 'G. Peters', rate: 138, role: 'Replenishment truck' },
-    { name: 'H. Willems', rate: 116, role: 'Loading' },
-  ];
+  const defaultRoute = 'overview';
 
   const templates = {
-    platforms: () => `
-      <h3>Three platforms, one operational command layer</h3>
-      <p>Operis drives Direct Labour performance, Astra automates inventory intelligence, and SCS scales multidisciplinary transformation.</p>
-      <div class="xp-grid platform-grid">
-        <button class="xp-card platform-launch" data-open-route="operis"><h4>Operis</h4><p>All-round Direct Labour control tower with deep KPI interactivity and SCADA-style process footprint.</p></button>
-        <button class="xp-card platform-launch" data-open-route="astra"><h4>Astra</h4><p>Advanced drone mission control with vision overlays, mismatch detection and cycle-count dispatch.</p></button>
-        <button class="xp-card platform-launch" data-open-route="scs"><h4>SCS Consultancy</h4><p>Multidisciplinary team spanning operations, analytics, engineering and transformation governance.</p></button>
+    overview: () => `
+      <h3>Integrated Fulfilment, Planning & Control</h3>
+      <p>Ascentra combines IFS, IPS and ICS into one orchestration layer. Leadership sees decisions, operations feel flow, and teams execute with confidence.</p>
+      <div class="xp-grid">
+        <article class="xp-card"><h4>IFS</h4><p>Integrated Fulfilment System balancing labour, machines and inventory in real-time.</p></article>
+        <article class="xp-card"><h4>IPS</h4><p>Intelligent Planning System aligning wave planning, priorities, and downstream capacity.</p></article>
+        <article class="xp-card"><h4>ICS</h4><p>Integrated Control Stack with alerts, escalation routes, and exception governance.</p></article>
       </div>
     `,
-
-    operis: () => `
-      <h3>Operis | Direct Labour Command Center</h3>
-      <p>Open full-screen dashboard for state-of-the-art operational steering. Explore bars, lines, pies, SCADA process live coloring, role recommendations, and target recovery actions.</p>
-      <button class="btn btn-primary" id="open-operis-dashboard">Open full-screen Operis dashboard</button>
-      <div class="kpi-inline"><div class="kpi-tile"><small>Throughput</small><strong>+18%</strong></div><div class="kpi-tile"><small>Direct Labour control</small><strong>94%</strong></div><div class="kpi-tile"><small>Norm deviation</small><strong>-7%</strong></div></div>
-      <div class="operis-overlay" id="operis-overlay" aria-hidden="true">
-        <div class="operis-panel">
-          <div class="operis-head"><h4>Operis Performance Dashboard</h4><button class="ui-dot" id="close-operis-dashboard" aria-label="Close dashboard">×</button></div>
-          <p class="ops-explainer">Use the controls to simulate shift pressure and intervention planning. Mouse over stations and process nodes to inspect live flow quality.</p>
-
-          <div class="roi-controls">
-            <label>Norm target UPH <span id="norm-target-value">118</span><input id="norm-target" type="range" min="90" max="160" value="118" /></label>
-            <label>Shift pressure % <span id="shift-pressure-value">100</span><input id="shift-pressure" type="range" min="75" max="130" value="100" /></label>
-            <label>Support interventions <span id="support-value">3</span><input id="support" type="range" min="0" max="12" value="3" /></label>
-          </div>
-
-          <div class="day-target"><strong id="day-target-status">Day target status: on track</strong><p id="day-target-actions">Action focus: keep current staffing balance and maintain replenishment cadence.</p></div>
-
-          <div class="chart-grid">
-            <section class="chart-card"><h5>Picker productivity bars</h5><div class="operis-chart" id="operis-bar-chart"></div></section>
-            <section class="chart-card"><h5>Hourly trend line</h5><svg id="operis-line-chart" viewBox="0 0 360 170" class="line-chart"></svg></section>
-            <section class="chart-card"><h5>Labour contribution pie</h5><div id="operis-pie-chart" class="pie-chart"></div><ul id="pie-legend" class="pie-legend"></ul></section>
-          </div>
-
-          <section class="chart-card">
-            <h5>SCADA process footprint</h5>
-            <p>Live flow map of inbound, decanting, pick-to-light, replenishment and loading. Colors auto-update by handling pressure and throughput quality.</p>
-            <div class="scada-map" id="scada-map">
-              <button class="flow-node" data-flow="Inbound Dock">Inbound Dock</button>
-              <button class="flow-node" data-flow="Decanting">Decanting</button>
-              <button class="flow-node" data-flow="Pick-to-Light">Pick-to-Light</button>
-              <button class="flow-node" data-flow="Replenishment Trucks">Replenishment Trucks</button>
-              <button class="flow-node" data-flow="Loading">Loading</button>
-              <div class="flow-line l1"></div><div class="flow-line l2"></div><div class="flow-line l3"></div><div class="flow-line l4"></div>
-            </div>
-            <p id="flow-inspector" class="flow-inspector">Hover a process node to inspect live status.</p>
-          </section>
-
-          <section class="chart-card"><h5>Station components</h5><div class="station-grid" id="station-grid"></div></section>
-          <section class="chart-card"><h5>Picker table</h5><div class="picker-table-wrap"><table class="picker-table"><thead><tr><th>Picker</th><th>Process</th><th>UPH</th><th>Norm gap</th><th>Status</th></tr></thead><tbody id="picker-table-body"></tbody></table></div></section>
-          <section class="chart-card chatbot"><h5>Operis Assistant</h5><div class="chat-log" id="chat-log"><div class="msg bot">Ask: "How can I increase output?"</div></div><div class="chat-input"><input id="chat-input" type="text" placeholder="Type your question..." /><button id="chat-send">Send</button></div></section>
-        </div>
+    modules: () => `
+      <h3>Modules</h3>
+      <p>Each module is deployable independently, but built to work as one composed platform.</p>
+      <div class="xp-grid">
+        <article class="xp-card"><h4>IFS Core</h4><p>Order decomposition, inventory sync and task generation with adaptive queue logic.</p></article>
+        <article class="xp-card"><h4>IPS Orchestrator</h4><p>Shift-aware planning boards and predictive constraints for upstream/downstream balancing.</p></article>
+        <article class="xp-card"><h4>ICS Tower</h4><p>Control-tower UI for SLA drift, live anomalies and guided response paths.</p></article>
       </div>
     `,
-
-    astra: () => `
-      <h3>Astra | Advanced Drone Mission Control</h3>
-      <p>Configure mission complexity and inspect the drone’s live vision of carton breaklines during counting. Red locations indicate mismatches and can be turned into cycle-count tasks immediately.</p>
-      <div class="mission-controls">
-        <button class="mission-btn active" data-mission="A">Count A</button>
-        <button class="mission-btn" data-mission="B">Count B</button>
-        <button class="mission-btn" data-mission="C">Count C</button>
-        <button class="mission-btn" data-mission="ALL">Count ALL</button>
-        <button class="mission-btn" data-speed="normal">Normal speed</button>
-        <button class="mission-btn" data-speed="high">High speed</button>
-        <button class="btn btn-primary" id="start-mission">Launch mission</button>
+    'use-cases': () => `
+      <h3>Warehouse Use Cases</h3>
+      <div class="xp-grid">
+        <article class="xp-card"><h4>Exception handling</h4><p>Automated triage for stock-out, pick-fail and carrier misses with operator playbooks.</p></article>
+        <article class="xp-card"><h4>AS/RS buffers</h4><p>Dynamic buffer control to stabilize throughput and avoid starvation at critical stations.</p></article>
+        <article class="xp-card"><h4>Mixed palletising</h4><p>Constraint-based pallet assembly balancing cube, fragility, route sequence and speed.</p></article>
       </div>
-
-      <div class="warehouse-sim" id="warehouse-sim">
-        <div class="drone-vehicle" id="drone"><span class="drone-body"></span><span class="rotor r1"></span><span class="rotor r2"></span><span class="rotor r3"></span><span class="rotor r4"></span></div>
-        ${Array.from({ length: 24 }).map((_, i) => `<div class="rack" data-rack="R${String(i + 1).padStart(2, '0')}"><div class="pallet-face"><div class="box-grid">${Array.from({ length: 6 }).map(() => '<span class="box"></span>').join('')}</div><div class="scan-lines"></div></div><small>R${String(i + 1).padStart(2, '0')}</small></div>`).join('')}
-      </div>
-
-      <div id="vision-toast" class="vision-toast">Drone vision: detecting box breaklines and carton edges...</div>
-      <p id="mission-log">Mission idle. Awaiting command.</p>
-
-      <div class="xp-kpis" id="astra-report">
-        <div class="kpi-tile"><small>Locations scanned</small><strong id="loc-scanned">0</strong></div>
-        <div class="kpi-tile"><small>Articles counted</small><strong id="sku-counted">0</strong></div>
-        <div class="kpi-tile"><small>Boxes counted</small><strong id="boxes-counted">0</strong></div>
-        <div class="kpi-tile"><small>Inventory accuracy</small><strong id="inv-accuracy">--</strong></div>
-      </div>
-      <div class="chart-card"><h5>Mission report</h5><ul id="mission-report-list" class="report-list"></ul><button class="btn btn-secondary" id="send-cycle-task">Send cycle count task</button></div>
     `,
-
-    scs: () => `
-      <h3>SCS Consultancy | Multidisciplinary Team</h3>
-      <p>Our SCS bench combines strategy, warehousing, industrial engineering, analytics and transformation leadership.</p>
-      <div class="chip-row"><button class="mission-btn active" data-team-filter="all">All</button><button class="mission-btn" data-team-filter="operations">Operations</button><button class="mission-btn" data-team-filter="data">Data</button><button class="mission-btn" data-team-filter="delivery">Delivery</button></div>
-      <div class="xp-grid" id="team-grid"></div>
+    roi: () => `
+      <h3>ROI Simulator</h3>
+      <p>Adjust assumptions and preview impact on productivity, lead-time and annual value capture.</p>
+      <div class="roi-controls">
+        <label>Daily Orders <span id="orders-value">12000</span>
+          <input type="range" id="orders" min="3000" max="40000" step="500" value="12000" />
+        </label>
+        <label>Automation Coverage % <span id="automation-value">45</span>
+          <input type="range" id="automation" min="10" max="95" step="1" value="45" />
+        </label>
+        <label>Error Reduction % <span id="errors-value">18</span>
+          <input type="range" id="errors" min="5" max="50" step="1" value="18" />
+        </label>
+      </div>
+      <div class="xp-kpis">
+        <div class="kpi-tile"><small>Throughput uplift</small><strong id="kpi-throughput">+14%</strong></div>
+        <div class="kpi-tile"><small>Lead-time reduction</small><strong id="kpi-lead">-11%</strong></div>
+        <div class="kpi-tile"><small>Cost-to-serve</small><strong id="kpi-cost">-8%</strong></div>
+        <div class="kpi-tile"><small>Annual impact</small><strong id="kpi-impact">€2.1M</strong></div>
+      </div>
     `,
   };
 
-  const team = [
-    { name: 'Warehouse Excellence Lead', d: 'operations', text: 'Direct labour diagnostics and flow-control redesign.' },
-    { name: 'Automation Program Architect', d: 'delivery', text: 'AS/RS integration, mission orchestration and rollout leadership.' },
-    { name: 'Data & KPI Strategist', d: 'data', text: 'KPI model design, benchmark calibration and decision dashboards.' },
-    { name: 'Change & Governance Principal', d: 'delivery', text: 'Steering rhythm, PMO controls and executive stakeholder cadence.' },
-    { name: 'Inventory Accuracy Specialist', d: 'operations', text: 'Cycle count governance, root cause elimination and SOP uplift.' },
-    { name: 'Applied Operations Analyst', d: 'data', text: 'Scenario simulation and continuous improvement scorecards.' },
-  ];
-
   function getRoute() {
-    const route = new URLSearchParams(location.search).get('xp');
+    const params = new URLSearchParams(location.search);
+    const route = params.get('xp');
     return templates[route] ? route : defaultRoute;
   }
 
-  function setActive(route) { routeButtons.forEach((button) => button.classList.toggle('active', button.dataset.route === route)); }
+  function updateRoute(route, push = true) {
+    if (!templates[route]) route = defaultRoute;
+    content.innerHTML = templates[route]();
+    routeButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.route === route));
 
-  function render(route, push) {
-    const safeRoute = templates[route] ? route : defaultRoute;
-    content.innerHTML = templates[safeRoute]();
-    setActive(safeRoute);
     if (push) {
       const url = new URL(location.href);
-      url.searchParams.set('xp', safeRoute);
-      history.pushState({ xp: safeRoute }, '', url);
+      url.searchParams.set('xp', route);
+      history.pushState({ xp: route }, '', url);
     }
-    if (safeRoute === 'platforms') initPlatforms();
-    if (safeRoute === 'operis') initOperis();
-    if (safeRoute === 'astra') initAstra();
-    if (safeRoute === 'scs') initSCS();
-  }
 
-  function initPlatforms() { content.querySelectorAll('[data-open-route]').forEach((button) => button.addEventListener('click', () => render(button.dataset.openRoute, true))); }
-
-  function initOperis() {
-    const overlay = document.getElementById('operis-overlay');
-    const open = document.getElementById('open-operis-dashboard');
-    const close = document.getElementById('close-operis-dashboard');
-
-    const norm = document.getElementById('norm-target');
-    const shift = document.getElementById('shift-pressure');
-    const support = document.getElementById('support');
-
-    const normValue = document.getElementById('norm-target-value');
-    const shiftValue = document.getElementById('shift-pressure-value');
-    const supportValue = document.getElementById('support-value');
-
-    const barChart = document.getElementById('operis-bar-chart');
-    const lineChart = document.getElementById('operis-line-chart');
-    const pieChart = document.getElementById('operis-pie-chart');
-    const pieLegend = document.getElementById('pie-legend');
-    const tableBody = document.getElementById('picker-table-body');
-    const stationGrid = document.getElementById('station-grid');
-    const targetStatus = document.getElementById('day-target-status');
-    const targetActions = document.getElementById('day-target-actions');
-    const scadaNodes = document.querySelectorAll('.flow-node');
-    const flowInspector = document.getElementById('flow-inspector');
-
-    const draw = () => {
-      const normTarget = Number(norm.value);
-      const pressure = Number(shift.value) / 100;
-      const supportBoost = Number(support.value) * 1.8;
-
-      normValue.textContent = normTarget;
-      shiftValue.textContent = shift.value;
-      supportValue.textContent = support.value;
-
-      barChart.innerHTML = '';
-      tableBody.innerHTML = '';
-      stationGrid.innerHTML = '';
-
-      const adjustedValues = pickerData.map((picker) => {
-        const adjusted = Math.max(70, Math.round((picker.rate * pressure) + supportBoost));
-        const below = adjusted < normTarget;
-
-        const row = document.createElement('div');
-        row.className = `bar-row ${below ? 'below' : ''}`;
-        row.innerHTML = `<span>${picker.name}</span><div><i style="width:${Math.min(100, adjusted / 1.7)}%"></i></div><strong>${adjusted} UPH</strong>`;
-        barChart.appendChild(row);
-
-        const tr = document.createElement('tr');
-        const gap = adjusted - normTarget;
-        tr.className = below ? 'below' : '';
-        tr.innerHTML = `<td>${picker.name}</td><td>${picker.role}</td><td>${adjusted}</td><td>${gap >= 0 ? '+' : ''}${gap}</td><td>${below ? 'Below norm' : 'On target'}</td>`;
-        tableBody.appendChild(tr);
-
-        return adjusted;
-      });
-
-      drawLineChart(lineChart, adjustedValues);
-      drawPie(pieChart, pieLegend, adjustedValues);
-      drawStations(stationGrid, adjustedValues, normTarget);
-      drawTargetState(targetStatus, targetActions, adjustedValues, normTarget);
-      colorScada(scadaNodes, adjustedValues, normTarget);
-    };
-
-    [norm, shift, support].forEach((el) => el.addEventListener('input', draw));
-    draw();
-
-    scadaNodes.forEach((node) => {
-      node.addEventListener('mouseover', () => {
-        flowInspector.textContent = `${node.dataset.flow}: live throughput quality and handling pressure actively monitored.`;
-      });
-    });
-
-    const pulse = setInterval(() => {
-      scadaNodes.forEach((node) => node.classList.toggle('pulse'));
-    }, 1400);
-
-    open.addEventListener('click', () => overlay.classList.add('active'));
-    close.addEventListener('click', () => {
-      overlay.classList.remove('active');
-      clearInterval(pulse);
-    });
-    overlay.addEventListener('click', (event) => {
-      if (event.target === overlay) {
-        overlay.classList.remove('active');
-        clearInterval(pulse);
-      }
-    });
-
-    initChatbot();
-  }
-
-  function colorScada(nodes, values, normTarget) {
-    const avg = values.reduce((a, b) => a + b, 0) / values.length;
-    nodes.forEach((node, idx) => {
-      const local = values[idx % values.length];
-      node.classList.remove('ok', 'warn', 'bad');
-      if (local >= normTarget + 5 && avg >= normTarget) node.classList.add('ok');
-      else if (local >= normTarget - 4) node.classList.add('warn');
-      else node.classList.add('bad');
-    });
-  }
-
-  function drawLineChart(svg, values) {
-    const hours = [6, 8, 10, 12, 14, 16, 18, 20];
-    const points = values.map((v, i) => ({ x: 24 + (i * 44), y: 145 - (v - 70) * 0.82 }));
-    const polyline = points.map((p) => `${p.x},${p.y}`).join(' ');
-    svg.innerHTML = `<rect x="0" y="0" width="360" height="170" fill="rgba(255,255,255,.02)"/><polyline points="${polyline}" fill="none" stroke="#8fc0ff" stroke-width="3"/>${points.map((p) => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#e8c89a"/>`).join('')}${hours.map((h, i) => `<text x="${24 + i * 44}" y="165" fill="#d8cbb9" font-size="10">${h}:00</text>`).join('')}`;
-  }
-
-  function drawPie(node, legend, values) {
-    const low = values.filter((v) => v < 110).length;
-    const mid = values.filter((v) => v >= 110 && v < 130).length;
-    const high = values.filter((v) => v >= 130).length;
-    const total = values.length || 1;
-
-    const a = Math.round((high / total) * 100);
-    const b = Math.round((mid / total) * 100);
-    const c = 100 - a - b;
-
-    node.style.background = `conic-gradient(#77d49c 0 ${a}%, #d8b46a ${a}% ${a + b}%, #d47a7a ${a + b}% 100%)`;
-    legend.innerHTML = `<li><span class="dot green"></span>Above target ${a}%</li><li><span class="dot amber"></span>At risk ${b}%</li><li><span class="dot red"></span>Below target ${c}%</li>`;
-  }
-
-  function drawStations(node, values, normTarget) {
-    const components = ['Pick to Light', 'Decanting', 'Replenishment Truck', 'Loading'];
-    components.forEach((component, i) => {
-      const value = values[i * 2] || values[0];
-      const status = value >= normTarget + 8 ? 'green' : value >= normTarget ? 'amber' : 'red';
-      const station = document.createElement('button');
-      station.className = `station ${status}`;
-      station.innerHTML = `<strong>${component}</strong><small>${value} UPH equivalent</small>`;
-      station.addEventListener('mouseover', () => {
-        station.title = `${component}: ${status.toUpperCase()} performance state`;
-      });
-      node.appendChild(station);
-    });
-  }
-
-  function drawTargetState(statusNode, actionsNode, values, normTarget) {
-    const avg = values.reduce((a, b) => a + b, 0) / values.length;
-    const gap = Math.round(avg - normTarget);
-
-    if (gap >= 0) {
-      statusNode.textContent = `Day target status: achieved (+${gap} UPH)`;
-      actionsNode.textContent = 'Recommended action: keep staffing matrix stable, maintain replenishment rhythm, and hold loading cadence.';
-    } else {
-      statusNode.textContent = `Day target status: off-track (${gap} UPH)`;
-      actionsNode.textContent = 'Recommended action: swap 1 low-performing loading operator with high-performing replenishment operator, increase interventions, and shift one decanting specialist to pick-to-light.';
+    if (route === 'roi') {
+      initRoi();
     }
   }
 
-  function initChatbot() {
-    const input = document.getElementById('chat-input');
-    const send = document.getElementById('chat-send');
-    const log = document.getElementById('chat-log');
-    if (!input || !send || !log) return;
+  function initRoi() {
+    const orders = document.getElementById('orders');
+    if (!orders) return;
+    const automation = document.getElementById('automation');
+    const errors = document.getElementById('errors');
 
-    const answer = () => {
-      const text = input.value.trim();
-      if (!text) return;
-      log.innerHTML += `<div class="msg user">${text}</div>`;
-      log.innerHTML += `<div class="msg bot">Recommendation: move D. Bakker from Loading to Decanting, move G. Peters from Replenishment to Loading, and assign B. Janssen to Pick-to-Light wave 3. Estimated efficiency gain: +11% throughput and +7% norm attainment this shift.</div>`;
-      input.value = '';
-      log.scrollTop = log.scrollHeight;
+    const output = {
+      orders: document.getElementById('orders-value'),
+      automation: document.getElementById('automation-value'),
+      errors: document.getElementById('errors-value'),
+      throughput: document.getElementById('kpi-throughput'),
+      lead: document.getElementById('kpi-lead'),
+      cost: document.getElementById('kpi-cost'),
+      impact: document.getElementById('kpi-impact'),
     };
 
-    send.addEventListener('click', answer);
-    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') answer(); });
-  }
+    const calculate = () => {
+      const o = Number(orders.value);
+      const a = Number(automation.value);
+      const e = Number(errors.value);
 
-  function initAstra() {
-    const buttons = content.querySelectorAll('.mission-btn[data-mission]');
-    const speedButtons = content.querySelectorAll('.mission-btn[data-speed]');
-    const start = document.getElementById('start-mission');
-    const drone = document.getElementById('drone');
-    const racks = Array.from(content.querySelectorAll('.rack'));
-    const log = document.getElementById('mission-log');
-    const report = document.getElementById('mission-report-list');
-    const toast = document.getElementById('vision-toast');
-    const sendTask = document.getElementById('send-cycle-task');
+      output.orders.textContent = o;
+      output.automation.textContent = a;
+      output.errors.textContent = e;
 
-    const loc = document.getElementById('loc-scanned');
-    const sku = document.getElementById('sku-counted');
-    const boxes = document.getElementById('boxes-counted');
-    const acc = document.getElementById('inv-accuracy');
+      const throughput = Math.round((a * 0.18) + (e * 0.22));
+      const lead = Math.round((a * 0.09) + (e * 0.2));
+      const cost = Math.round((a * 0.07) + (e * 0.13));
+      const impact = ((o * (a / 100) * 0.42) + (e * 7200)) / 1000000;
 
-    let mission = 'A';
-    let speed = 320;
-    let mismatchRack = null;
-
-    buttons.forEach((button) => button.addEventListener('click', () => {
-      mission = button.dataset.mission;
-      buttons.forEach((b) => b.classList.toggle('active', b === button));
-    }));
-
-    speedButtons.forEach((button) => button.addEventListener('click', () => {
-      speed = button.dataset.speed === 'high' ? 180 : 320;
-      speedButtons.forEach((b) => b.classList.toggle('active', b === button));
-    }));
-
-    function getTargets() {
-      if (mission === 'A') return racks.slice(0, 8);
-      if (mission === 'B') return racks.slice(8, 16);
-      if (mission === 'C') return racks.slice(16);
-      return racks;
-    }
-
-    start.addEventListener('click', async () => {
-      const targets = getTargets();
-      report.innerHTML = '';
-      mismatchRack = null;
-      racks.forEach((r) => r.classList.remove('scanned', 'mismatch'));
-
-      let scanned = 0;
-      log.textContent = `Mission ${mission} launched. Drone takeoff sequence engaged.`;
-
-      for (const rack of targets) {
-        const rackRect = rack.getBoundingClientRect();
-        const simRect = rack.parentElement.getBoundingClientRect();
-        const lines = rack.querySelector('.scan-lines');
-
-        drone.style.left = `${rackRect.left - simRect.left + 16}px`;
-        drone.style.top = `${rackRect.top - simRect.top + 10}px`;
-
-        rack.classList.add('scanned');
-        lines.classList.add('active');
-        toast.classList.add('show');
-        toast.textContent = `Drone vision @ ${rack.dataset.rack}: breakline segmentation + box edge detection active.`;
-
-        scanned += 1;
-        loc.textContent = String(scanned);
-        sku.textContent = String(scanned * 42);
-        boxes.textContent = String(scanned * 24);
-
-        await new Promise((resolve) => setTimeout(resolve, speed));
-
-        lines.classList.remove('active');
-        toast.classList.remove('show');
-
-        if (scanned % 6 === 0) {
-          const li = document.createElement('li');
-          li.textContent = `Checkpoint ${scanned}: cycle count validated at ${rack.dataset.rack}.`;
-          report.appendChild(li);
-        }
-      }
-
-      mismatchRack = targets[Math.max(0, Math.floor(targets.length * 0.62) - 1)]?.dataset.rack || 'R11';
-      const mismatchNode = targets.find((r) => r.dataset.rack === mismatchRack);
-      if (mismatchNode) mismatchNode.classList.add('mismatch');
-
-      acc.textContent = `${(99.1 - (mission === 'ALL' ? 0.9 : 0.5)).toFixed(1)}%`;
-      log.textContent = `Mission complete. Inventory mismatch found at ${mismatchRack}.`;
-      report.innerHTML += `<li>Final finding: ${mismatchRack} counted box quantity deviates from WMS snapshot.</li>`;
-    });
-
-    sendTask.addEventListener('click', () => {
-      if (!mismatchRack) report.innerHTML += '<li>No mismatch selected yet. Run a mission first.</li>';
-      else report.innerHTML += `<li>Cycle count task sent for ${mismatchRack}. Supervisor queue updated.</li>`;
-    });
-  }
-
-  function initSCS() {
-    const grid = document.getElementById('team-grid');
-    const filters = content.querySelectorAll('[data-team-filter]');
-
-    const draw = (filter) => {
-      grid.innerHTML = '';
-      team.filter((item) => filter === 'all' || item.d === filter).forEach((item) => {
-        const card = document.createElement('article');
-        card.className = 'xp-card';
-        card.innerHTML = `<h4>${item.name}</h4><p>${item.text}</p><small>${item.d.toUpperCase()}</small>`;
-        grid.appendChild(card);
-      });
+      output.throughput.textContent = `+${throughput}%`;
+      output.lead.textContent = `-${lead}%`;
+      output.cost.textContent = `-${cost}%`;
+      output.impact.textContent = `€${impact.toFixed(1)}M`;
     };
 
-    filters.forEach((button) => button.addEventListener('click', () => {
-      filters.forEach((b) => b.classList.toggle('active', b === button));
-      draw(button.dataset.teamFilter);
-    }));
-
-    draw('all');
+    [orders, automation, errors].forEach((el) => el.addEventListener('input', calculate));
+    calculate();
   }
 
-  routeButtons.forEach((button) => button.addEventListener('click', () => render(button.dataset.route, true)));
-  window.addEventListener('popstate', () => render(getRoute(), false));
-  render(getRoute(), false);
+  routeButtons.forEach((button) => {
+    button.addEventListener('click', () => updateRoute(button.dataset.route));
+  });
+
+  window.addEventListener('popstate', () => updateRoute(getRoute(), false));
+  updateRoute(getRoute(), false);
+
+  const enterLinks = document.querySelectorAll('[data-enter-platform]');
+  enterLinks.forEach((link) => {
+    link.addEventListener('click', (event) => {
+      if (!link.getAttribute('href')?.startsWith('#')) return;
+      event.preventDefault();
+      root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       root.classList.toggle('in-view', entry.isIntersecting);
       document.body.classList.toggle('experience-active', entry.isIntersecting);
     });
-  }, { threshold: .25 });
+  }, { threshold: 0.25 });
 
   observer.observe(root);
 })();
