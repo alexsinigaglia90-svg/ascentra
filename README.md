@@ -1,15 +1,13 @@
-# Ascentra Site Scaffold
+# Ascentra (Blanco Start)
 
-Premium multi-page static site (vanilla HTML/CSS/JS) with a demo client portal and Cloudflare Pages Functions API stubs.
+De website is teruggezet naar een minimale basis om opnieuw vanaf nul op te bouwen.
 
-## Structure
+## Huidige structuur
 
-- `index.html` and service pages for consultancy, development, operational support, work, contact, and client login.
-- `css/styles.css` for shared visual system.
-- `js/main.js` for nav active states and editable hero tagline.
-- `js/portal.js` for demo login/session/ticket client logic.
-- `functions/api/*` for demo cookie session and ticket endpoints.
+- `index.html` — lege startpagina
+- `css/styles.css` — minimale basisstijl
+- `js/main.js` — lege JavaScript-entry
 
-## Hero media
+## Lokaal starten
 
-Replace `assets/video/hero.mp4` with your production hero video.
+Open `index.html` in je browser.
