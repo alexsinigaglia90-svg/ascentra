@@ -2,12 +2,14 @@ type Language = "en" | "nl";
 
 const labels = {
   en: {
+    staffing: "Detachering",
     capabilities: "Capabilities",
     platform: "Platform",
     products: "Products",
     contact: "Contact",
   },
   nl: {
+    staffing: "Detachering",
     capabilities: "Capaciteiten",
     platform: "Platform",
     products: "Producten",
@@ -22,6 +24,7 @@ type NavProps = {
 
 export default function Nav({ language, onLanguageChange }: NavProps) {
   const links = [
+    { label: labels[language].staffing, href: "/operis/" },
     { label: labels[language].capabilities, href: "#system" },
     { label: labels[language].platform, href: "#platform" },
     { label: labels[language].products, href: "#pillars" },

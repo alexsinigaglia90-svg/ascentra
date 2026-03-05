@@ -19,6 +19,7 @@ const heroText = {
       "Ascentra aligns board-level supply chain direction, operational warehousing scale, and product innovation into one cohesive system.",
     ctaPrimary: "Explore the three pillars",
     ctaSecondary: "Request an intro",
+    ctaTertiary: "Open detachering",
     scroll: "Scroll",
   },
   nl: {
@@ -28,6 +29,7 @@ const heroText = {
       "Ascentra verbindt board-level supply chain richting, operationele warehousing schaal en productinnovatie in één samenhangend systeem.",
     ctaPrimary: "Verken de drie pijlers",
     ctaSecondary: "Vraag een introductie aan",
+    ctaTertiary: "Open detachering",
     scroll: "Scroll",
   },
 };
@@ -104,6 +106,12 @@ export default function HeroVideo({ language, onLanguageChange }: HeroVideoProps
             {copy.subcopy}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
+            <a
+              href="/operis/"
+              className="rounded-full border border-white/55 bg-white/10 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/18"
+            >
+              {copy.ctaTertiary}
+            </a>
             <a
               href="#pillars"
               className="rounded-full bg-[var(--bg)] px-6 py-3 text-sm font-medium text-[var(--ink)] shadow-[0_14px_38px_rgba(10,16,25,0.35)] transition hover:translate-y-[-1px]"
