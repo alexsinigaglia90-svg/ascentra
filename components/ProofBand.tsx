@@ -5,21 +5,22 @@ const metrics = ["Board-level clarity", "Operational stability under pressure", 
 
 export default function ProofBand() {
   return (
-    <Section className="section-spacing border-y border-[var(--line)] bg-white/45">
+    <Section className="section-spacing border-y border-[var(--line)] bg-gradient-to-b from-white/45 to-white/25">
       <div className="container-shell">
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--brown)]">Selected environments & ecosystems</p>
+        <p className="section-kicker">Selected environments & ecosystems</p>
         <div className="mt-4 flex flex-wrap gap-2">
           {ecosystems.map((item) => (
-            <span key={item} className="pill">
+            <span key={item} className="pill lift-hover">
               {item}
             </span>
           ))}
         </div>
-        <div className="mt-8 grid gap-3 md:grid-cols-3">
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
           {metrics.map((item) => (
-            <div key={item} className="surface p-5 text-sm font-medium tracking-wide md:text-base">
-              {item}
-            </div>
+            <article key={item} className="lux-panel lift-hover p-5 text-sm md:text-base">
+              <p className="text-[0.68rem] uppercase tracking-[0.2em] text-[var(--blue)]/75">Credibility</p>
+              <p className="mt-1 font-medium tracking-wide">{item}</p>
+            </article>
           ))}
         </div>
       </div>

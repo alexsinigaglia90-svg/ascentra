@@ -4,10 +4,39 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useMemo, useState } from "react";
 import Nav from "./Nav";
 
-export default function HeroVideo() {
+type Language = "en" | "nl";
+
+type HeroVideoProps = {
+  language: Language;
+  onLanguageChange: (value: Language) => void;
+};
+
+const heroText = {
+  en: {
+    eyebrow: "Supply chain leadership, operations, and products",
+    title: "Operational excellence, engineered with intelligence",
+    subcopy:
+      "Ascentra aligns board-level supply chain direction, operational warehousing scale, and product innovation into one cohesive system.",
+    ctaPrimary: "Explore the three pillars",
+    ctaSecondary: "Request an intro",
+    scroll: "Scroll",
+  },
+  nl: {
+    eyebrow: "Supply chain leiderschap, operatie en producten",
+    title: "Operationele excellentie, ontworpen met intelligentie",
+    subcopy:
+      "Ascentra verbindt board-level supply chain richting, operationele warehousing schaal en productinnovatie in één samenhangend systeem.",
+    ctaPrimary: "Verken de drie pijlers",
+    ctaSecondary: "Vraag een introductie aan",
+    scroll: "Scroll",
+  },
+};
+
+export default function HeroVideo({ language, onLanguageChange }: HeroVideoProps) {
   const reducedMotion = useReducedMotion();
   const [videoFailed, setVideoFailed] = useState(false);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
+  const copy = heroText[language];
 
   const parallaxStyle = useMemo(
     () => ({
@@ -52,36 +81,46 @@ export default function HeroVideo() {
       )}
 
       <div className="hero-vignette grain-overlay absolute inset-0" aria-hidden="true" />
-      <Nav />
+      <span className="ambient-orb left-[8%] top-[18%] h-24 w-24 bg-[var(--blue)]/30" aria-hidden="true" />
+      <span className="ambient-orb right-[10%] top-[24%] h-28 w-28 bg-[var(--brown)]/25 [animation-delay:2.1s]" aria-hidden="true" />
+      <span className="ambient-orb bottom-[14%] left-[18%] h-20 w-20 bg-white/25 [animation-delay:1.2s]" aria-hidden="true" />
+      <Nav language={language} onLanguageChange={onLanguageChange} />
 
-      <div className="container-shell relative z-20 flex min-h-screen items-end pb-16 pt-32 md:items-center md:pb-0">
+      <div className="container-shell relative z-20 flex min-h-screen items-end pb-14 pt-32 md:items-center md:pb-0">
         <motion.div
           style={reducedMotion ? undefined : parallaxStyle}
           initial={reducedMotion ? false : { opacity: 0, y: 10 }}
           animate={reducedMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
-          className="max-w-3xl text-white"
+          className="max-w-4xl text-white"
         >
-          <p className="mb-3 text-xs uppercase tracking-[0.2em] text-white/75">Supply chain leadership, operations, and products</p>
-          <h1 className="text-balance text-5xl leading-[0.95] font-semibold md:text-7xl">
-            Stately strategy. Relentless execution.
+          <div className="glass-dark mb-4 inline-flex rounded-full px-4 py-2">
+            <p className="text-xs uppercase tracking-[0.2em] text-white/85">{copy.eyebrow}</p>
+          </div>
+          <h1 className="headline-glow text-balance text-5xl leading-[0.93] font-semibold md:text-7xl">
+            {copy.title}
           </h1>
-          <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/85 md:text-lg">
-            Ascentra aligns board-level supply chain direction, operational warehousing scale, and product innovation into one cohesive system.
+          <p className="mt-5 max-w-3xl text-base leading-relaxed text-white/86 md:text-lg">
+            {copy.subcopy}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a
               href="#pillars"
-              className="rounded-full bg-[var(--bg)] px-6 py-3 text-sm font-medium text-[var(--ink)] transition hover:translate-y-[-1px]"
+              className="rounded-full bg-[var(--bg)] px-6 py-3 text-sm font-medium text-[var(--ink)] shadow-[0_14px_38px_rgba(10,16,25,0.35)] transition hover:translate-y-[-1px]"
             >
-              Explore the three pillars
+              {copy.ctaPrimary}
             </a>
             <a
               href="#contact"
               className="rounded-full border border-white/55 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/10"
             >
-              Request an intro
+              {copy.ctaSecondary}
             </a>
+          </div>
+          <div className="mt-8 flex flex-wrap gap-3 text-xs tracking-wide text-white/85 md:text-sm">
+            <span className="glass-dark rounded-full px-4 py-2">Boardroom to warehouse floor continuity</span>
+            <span className="glass-dark rounded-full px-4 py-2">Execution rhythm with measurable control</span>
+            <span className="glass-dark rounded-full px-4 py-2">Product thinking inside operations</span>
           </div>
         </motion.div>
       </div>
@@ -94,7 +133,7 @@ export default function HeroVideo() {
           animate={{ y: [0, 6, 0] }}
           transition={{ duration: 1.8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
         >
-          Scroll
+          {copy.scroll}
         </motion.a>
       )}
     </section>
