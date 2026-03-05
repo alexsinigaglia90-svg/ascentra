@@ -13,12 +13,6 @@ type Pillar = {
   flavor: string;
 };
 
-type NodePosition = {
-  top: string;
-  left: string;
-  transform: string;
-};
-
 const pillars: Pillar[] = [
   {
     key: "ascentra",
@@ -61,10 +55,10 @@ const pillars: Pillar[] = [
   },
 ];
 
-const desktopPositions: Record<Pillar["key"], NodePosition> = {
-  ascentra: { top: "8%", left: "50%", transform: "translate(-50%, 0)" },
-  operis: { top: "79%", left: "14%", transform: "translate(0, -50%)" },
-  astra: { top: "79%", left: "86%", transform: "translate(-100%, -50%)" },
+const nodeMap = {
+  ascentra: { x: 50, y: 18 },
+  operis: { x: 22, y: 72 },
+  astra: { x: 78, y: 72 },
 };
 
 const contentVariants = {
@@ -83,20 +77,10 @@ const itemVariants = {
 
 export default function TriadPillars() {
   const [active, setActive] = useState<Pillar["key"]>("ascentra");
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const reducedMotion = useReducedMotion();
 
   const activePillar = useMemo(() => pillars.find((pillar) => pillar.key === active) ?? pillars[0], [active]);
-
-  const handleMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (reducedMotion) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width - 0.5;
-    const y = (event.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: x * 8, y: y * 8 });
-  };
-
-  const handleLeave = () => setTilt({ x: 0, y: 0 });
+  const activeNode = nodeMap[activePillar.key];
 
   return (
     <Section id="pillars" className="section-spacing border-y border-[var(--line)] bg-white/35">
@@ -105,63 +89,64 @@ export default function TriadPillars() {
         <h2 className="text-balance text-4xl leading-tight md:text-5xl">The operating triad behind Ascentra.</h2>
 
         <div className="mt-10 hidden gap-8 lg:grid lg:grid-cols-[0.96fr_1.04fr] lg:items-start">
-          <motion.div
-            className="triad-stage triad-grid relative h-[460px] p-6"
-            onMouseMove={handleMove}
-            onMouseLeave={handleLeave}
-            style={
-              reducedMotion
-                ? undefined
-                : {
-                    transform: `perspective(1200px) rotateX(${-tilt.y}deg) rotateY(${tilt.x}deg)`,
-                  }
-            }
-          >
-            <span className="ambient-orb left-[8%] top-[12%] h-24 w-24 bg-[var(--blue)]/16" aria-hidden="true" />
-            <span className="ambient-orb right-[8%] top-[72%] h-28 w-28 bg-[var(--brown)]/14 [animation-delay:1.3s]" aria-hidden="true" />
+          <div>
+            <div className="triad-stage triad-grid relative h-[460px] p-6">
+              <span className="ambient-orb left-[10%] top-[14%] h-24 w-24 bg-[var(--blue)]/14" aria-hidden="true" />
+              <span className="ambient-orb right-[10%] bottom-[12%] h-24 w-24 bg-[var(--brown)]/14 [animation-delay:1.8s]" aria-hidden="true" />
 
-            <svg viewBox="0 0 100 100" className="triad-connectors" aria-hidden="true">
-              <defs>
-                <linearGradient id="triadEnergyGradient" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="rgba(30,58,95,0)" />
-                  <stop offset="48%" stopColor="rgba(30,58,95,0.9)" />
-                  <stop offset="100%" stopColor="rgba(107,78,61,0.15)" />
-                </linearGradient>
-              </defs>
-              <path className="triad-connector" d="M50 16 L23 70 L77 70 Z" />
-              {!reducedMotion && <path className="triad-energy" d="M50 16 L23 70 L77 70 Z" />}
-              <circle cx="50" cy="16" r="1.3" fill="rgba(30,58,95,0.62)" />
-              <circle cx="23" cy="70" r="1.3" fill="rgba(30,58,95,0.52)" />
-              <circle cx="77" cy="70" r="1.3" fill="rgba(30,58,95,0.52)" />
-            </svg>
+              <svg viewBox="0 0 100 100" className="triad-connectors" aria-hidden="true">
+                <defs>
+                  <linearGradient id="triadEnergyGradient" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="rgba(30,58,95,0)" />
+                    <stop offset="52%" stopColor="rgba(30,58,95,0.95)" />
+                    <stop offset="100%" stopColor="rgba(107,78,61,0.1)" />
+                  </linearGradient>
+                </defs>
+                <path className="triad-connector" d="M50 18 L22 72 L78 72 Z" />
+                {!reducedMotion && <path className="triad-energy" d="M50 18 L22 72 L78 72 Z" />}
 
-            {pillars.map((pillar) => (
-              <div
-                key={pillar.key}
-                className="node-wrap absolute"
-                style={desktopPositions[pillar.key]}
-                data-active={active === pillar.key}
-              >
-                <span className="node-halo" aria-hidden="true" />
+                <circle cx="50" cy="18" r="1.4" fill="rgba(30,58,95,0.62)" />
+                <circle cx="22" cy="72" r="1.4" fill="rgba(30,58,95,0.62)" />
+                <circle cx="78" cy="72" r="1.4" fill="rgba(30,58,95,0.62)" />
+
+                {!reducedMotion && (
+                  <motion.circle
+                    cx={activeNode.x}
+                    cy={activeNode.y}
+                    r={2.8}
+                    fill="rgba(30,58,95,0.14)"
+                    animate={{ r: [2.8, 4.2, 2.8], opacity: [0.65, 0.25, 0.65] }}
+                    transition={{ duration: 2.4, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+                  />
+                )}
+              </svg>
+
+              <div className="pointer-events-none absolute bottom-4 left-4 right-4 flex items-center justify-between text-[0.62rem] uppercase tracking-[0.2em] text-[var(--ink)]/45">
+                <span>Strategy</span>
+                <span>Operations</span>
+                <span>Products</span>
+              </div>
+            </div>
+
+            <div className="mt-4 flex rounded-full border border-[var(--line)] bg-white/70 p-1 shadow-[0_12px_26px_rgba(14,22,33,0.08)]">
+              {pillars.map((pillar) => (
                 <button
+                  key={pillar.key}
                   type="button"
                   onClick={() => setActive(pillar.key)}
-                  className="triad-node-btn relative px-6 py-2.5 text-sm font-medium tracking-wide"
-                  data-active={active === pillar.key}
+                  className={`flex-1 rounded-full px-4 py-2.5 text-sm font-medium tracking-wide transition ${
+                    active === pillar.key
+                      ? "bg-[var(--blue)] text-[var(--bg)] shadow-[0_10px_24px_rgba(30,58,95,0.35)]"
+                      : "text-[var(--ink)]/80 hover:bg-white"
+                  }`}
                 >
                   {pillar.title}
                 </button>
-              </div>
-            ))}
-
-            <div className="pointer-events-none absolute bottom-4 left-4 right-4 flex items-center justify-between text-[0.62rem] uppercase tracking-[0.2em] text-[var(--ink)]/45">
-              <span>Strategy</span>
-              <span>Operations</span>
-              <span>Products</span>
+              ))}
             </div>
-          </motion.div>
+          </div>
 
-          <div className="triad-panel min-h-[460px] p-8">
+          <div className="triad-panel min-h-[520px] p-8">
             <AnimatePresence mode="wait">
               <motion.article
                 key={activePillar.key}
