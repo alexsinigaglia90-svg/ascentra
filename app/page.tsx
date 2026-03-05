@@ -26,7 +26,7 @@ export default function Home() {
         <TriadPillars />
         <PlatformTeaser />
         <ProofBand />
-        <Contact />
+        <Contact language={language} />
       </main>
       <Footer />
     </>
