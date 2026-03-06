@@ -4,6 +4,20 @@ export type DepartmentId =
   | "planning"
   | "operational-management";
 
+export type EmployeeProfile = {
+  slug: string;
+  name: string;
+  title: string;
+  seniority: string;
+  location: string;
+  availability: string;
+  summary: string;
+  focus: string[];
+  certifications: string[];
+  sectorExperience: string[];
+  profileHighlights: string[];
+};
+
 export type SimulatorInputs = {
   pressure: number;
   automation: number;
@@ -12,6 +26,7 @@ export type SimulatorInputs = {
 };
 
 export type RoleCapabilityMap = Record<string, string[]>;
+export type RoleStaffingMap = Record<DepartmentId, Record<string, string[]>>;
 
 export type Department = {
   id: DepartmentId;
@@ -53,13 +68,18 @@ export const departments: Department[] = [
     summary:
       "Operations vraagt ritme, discipline en directe executie op de vloer. Operis levert professionals die stabiliseren, versnellen en teams aantoonbaar in control brengen.",
     roles: [
+      "Warehouse Operations Manager",
       "Warehouse Supervisor",
       "Shift Leader",
       "Inbound Coordinator",
       "Outbound Coordinator",
+      "Crossdock Coordinator",
+      "Inventory Control Specialist",
+      "Returns & Reverse Flow Coordinator",
       "Automation Operator",
       "Process Specialist",
       "Quality Lead",
+      "Continuous Improvement Specialist",
     ],
     capabilities: [
       "Team Leadership",
@@ -91,6 +111,10 @@ export const departments: Department[] = [
       "Wave Planner",
       "Exception Manager",
       "WMS Power User",
+      "Yard & Dock Controller",
+      "Labor Control Analyst",
+      "Slotting Analyst",
+      "SLA Performance Controller",
     ],
     capabilities: [
       "Real-time Decisioning",
@@ -116,10 +140,13 @@ export const departments: Department[] = [
       "Planning verbindt vraag, capaciteit en constraints in een robuust plan. Operis professionals maken volatiliteit bestuurbaar en vertalen data naar heldere keuzes.",
     roles: [
       "Demand/Capacity Planner",
+      "Master Planner",
       "Inbound Planner",
       "Outbound Planner",
       "Workforce Planner",
       "Transport Planner",
+      "Network Planner",
+      "S&OP Analyst",
     ],
     capabilities: [
       "Forecasting",
@@ -145,9 +172,13 @@ export const departments: Department[] = [
       "Operational Management maakt het verschil tussen activiteit en resultaat. Operis levert leiderschap dat governance versterkt, verandering versnelt en teams structureel ontwikkelt.",
     roles: [
       "Interim Ops Manager",
+      "Warehouse Manager",
       "Operations Excellence Lead",
       "Continuous Improvement Lead",
       "Site Lead Support",
+      "Program Manager Logistics Transformation",
+      "Start-up & Go-Live Manager",
+      "Customer Operations Manager",
     ],
     capabilities: [
       "Leadership",
@@ -170,6 +201,12 @@ export const departments: Department[] = [
 
 export const roleCapabilityMap: Record<DepartmentId, RoleCapabilityMap> = {
   operations: {
+    "Warehouse Operations Manager": [
+      "Team Leadership",
+      "KPI Rhythm",
+      "Flow Optimization",
+      "Safety",
+    ],
     "Warehouse Supervisor": [
       "Team Leadership",
       "Safety",
@@ -194,6 +231,24 @@ export const roleCapabilityMap: Record<DepartmentId, RoleCapabilityMap> = {
       "KPI Rhythm",
       "Lean Execution",
     ],
+    "Crossdock Coordinator": [
+      "Flow Optimization",
+      "KPI Rhythm",
+      "Problem Solving",
+      "Safety",
+    ],
+    "Inventory Control Specialist": [
+      "KPI Rhythm",
+      "Problem Solving",
+      "Training",
+      "Lean Execution",
+    ],
+    "Returns & Reverse Flow Coordinator": [
+      "Flow Optimization",
+      "Problem Solving",
+      "Safety",
+      "Training",
+    ],
     "Automation Operator": [
       "Automation Awareness",
       "Problem Solving",
@@ -207,6 +262,12 @@ export const roleCapabilityMap: Record<DepartmentId, RoleCapabilityMap> = {
       "KPI Rhythm",
     ],
     "Quality Lead": ["Safety", "Training", "KPI Rhythm", "Problem Solving"],
+    "Continuous Improvement Specialist": [
+      "Lean Execution",
+      "Flow Optimization",
+      "KPI Rhythm",
+      "Training",
+    ],
   },
   "control-room": {
     "Control Room Lead": [
@@ -234,6 +295,30 @@ export const roleCapabilityMap: Record<DepartmentId, RoleCapabilityMap> = {
       "Real-time Decisioning",
     ],
     "WMS Power User": ["WMS/MAWM", "KPI Cockpit", "Incident Response"],
+    "Yard & Dock Controller": [
+      "Real-time Decisioning",
+      "Bottleneck Management",
+      "Incident Response",
+      "Stakeholder Comms",
+    ],
+    "Labor Control Analyst": [
+      "KPI Cockpit",
+      "Real-time Decisioning",
+      "Stakeholder Comms",
+      "Bottleneck Management",
+    ],
+    "Slotting Analyst": [
+      "WMS/MAWM",
+      "KPI Cockpit",
+      "Real-time Decisioning",
+      "Bottleneck Management",
+    ],
+    "SLA Performance Controller": [
+      "KPI Cockpit",
+      "Stakeholder Comms",
+      "Incident Response",
+      "Real-time Decisioning",
+    ],
   },
   planning: {
     "Demand/Capacity Planner": [
@@ -241,6 +326,12 @@ export const roleCapabilityMap: Record<DepartmentId, RoleCapabilityMap> = {
       "Capacity Modeling",
       "Scenario Planning",
       "Stakeholder Alignment",
+    ],
+    "Master Planner": [
+      "Forecasting",
+      "Capacity Modeling",
+      "Scenario Planning",
+      "Constraints",
     ],
     "Inbound Planner": [
       "Forecasting",
@@ -265,6 +356,18 @@ export const roleCapabilityMap: Record<DepartmentId, RoleCapabilityMap> = {
       "Data Literacy",
       "Scenario Planning",
     ],
+    "Network Planner": [
+      "Capacity Modeling",
+      "Scenario Planning",
+      "Stakeholder Alignment",
+      "Data Literacy",
+    ],
+    "S&OP Analyst": [
+      "Forecasting",
+      "Stakeholder Alignment",
+      "Data Literacy",
+      "Scenario Planning",
+    ],
   },
   "operational-management": {
     "Interim Ops Manager": [
@@ -272,6 +375,12 @@ export const roleCapabilityMap: Record<DepartmentId, RoleCapabilityMap> = {
       "Governance",
       "Escalation Management",
       "KPI System",
+    ],
+    "Warehouse Manager": [
+      "Leadership",
+      "Governance",
+      "KPI System",
+      "Culture",
     ],
     "Operations Excellence Lead": [
       "KPI System",
@@ -291,6 +400,84 @@ export const roleCapabilityMap: Record<DepartmentId, RoleCapabilityMap> = {
       "Governance",
       "Culture",
     ],
+    "Program Manager Logistics Transformation": [
+      "Change Delivery",
+      "Governance",
+      "Escalation Management",
+      "Leadership",
+    ],
+    "Start-up & Go-Live Manager": [
+      "Change Delivery",
+      "Escalation Management",
+      "KPI System",
+      "Leadership",
+    ],
+    "Customer Operations Manager": [
+      "Leadership",
+      "Culture",
+      "Escalation Management",
+      "Coaching",
+    ],
+  },
+};
+
+export const employees: EmployeeProfile[] = [
+  {
+    slug: "martijn-ridder",
+    name: "Martijn Ridder",
+    title: "Senior Operations & Control Lead",
+    seniority: "12+ jaar operationele logistiek",
+    location: "Randstad | NL",
+    availability: "Beschikbaar binnen 2 weken",
+    summary:
+      "Martijn brengt operationele rust in complexe warehouse- en control-room omgevingen. Zijn kracht ligt in ritme bouwen, escalaties regisseren en teams versneld in eigenaarschap zetten.",
+    focus: [
+      "Operations governance",
+      "Control room performance",
+      "Go-live stabilisatie",
+      "KPI cadence en floor discipline",
+    ],
+    certifications: [
+      "Lean Six Sigma Green Belt",
+      "APICS Certified in Logistics, Transportation and Distribution",
+      "VCA VOL",
+    ],
+    sectorExperience: [
+      "3PL",
+      "E-commerce fulfilment",
+      "Retail distributie",
+      "Automatiseringsintensieve sites",
+    ],
+    profileHighlights: [
+      "Leidde een 24/7 operatie met 220+ FTE door een piekseizoen zonder SLA-verlies.",
+      "Richtte een control-room ritme in waarmee backlog in 6 weken met 31% daalde.",
+      "Bouwde een operations review cadence op C-level niveau met dagelijks uitvoerbaar ritme.",
+    ],
+  },
+];
+
+export const roleStaffingMap: RoleStaffingMap = {
+  operations: {
+    "Warehouse Operations Manager": ["martijn-ridder"],
+    "Warehouse Supervisor": ["martijn-ridder"],
+    "Shift Leader": ["martijn-ridder"],
+    "Process Specialist": ["martijn-ridder"],
+    "Continuous Improvement Specialist": ["martijn-ridder"],
+  },
+  "control-room": {
+    "Control Room Lead": ["martijn-ridder"],
+    "Exception Manager": ["martijn-ridder"],
+    "SLA Performance Controller": ["martijn-ridder"],
+  },
+  planning: {
+    "Master Planner": ["martijn-ridder"],
+    "Network Planner": ["martijn-ridder"],
+  },
+  "operational-management": {
+    "Interim Ops Manager": ["martijn-ridder"],
+    "Warehouse Manager": ["martijn-ridder"],
+    "Operations Excellence Lead": ["martijn-ridder"],
+    "Start-up & Go-Live Manager": ["martijn-ridder"],
   },
 };
 
@@ -440,4 +627,34 @@ export function getDepartmentById(id: DepartmentId): Department {
     throw new Error(`Unknown department: ${id}`);
   }
   return department;
+}
+
+export function getEmployeeBySlug(slug: string): EmployeeProfile | undefined {
+  return employees.find((entry) => entry.slug === slug);
+}
+
+export function getEmployeesByRole(
+  departmentId: DepartmentId,
+  role: string
+): EmployeeProfile[] {
+  const slugs = roleStaffingMap[departmentId]?.[role] ?? [];
+  return slugs
+    .map((slug) => getEmployeeBySlug(slug))
+    .filter((entry): entry is EmployeeProfile => Boolean(entry));
+}
+
+export function getRolesForEmployee(slug: string): Array<{
+  departmentId: DepartmentId;
+  departmentName: string;
+  role: string;
+}> {
+  return departments.flatMap((department) => {
+    return department.roles
+      .filter((role) => (roleStaffingMap[department.id]?.[role] ?? []).includes(slug))
+      .map((role) => ({
+        departmentId: department.id,
+        departmentName: department.name,
+        role,
+      }));
+  });
 }

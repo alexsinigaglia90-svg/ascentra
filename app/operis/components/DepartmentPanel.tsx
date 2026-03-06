@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import type { ConstellationNode, Department, RoleCapabilityMap } from "../data";
+import {
+  getEmployeesByRole,
+  type ConstellationNode,
+  type Department,
+  type RoleCapabilityMap,
+} from "../data";
 import { CapabilityConstellation } from "./CapabilityConstellation";
 import { RoleGrid } from "./RoleGrid";
 
@@ -30,6 +35,12 @@ export function DepartmentPanel({
   const panelRef = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState({ width: 0, height: 0 });
   const reduceMotion = useReducedMotion();
+
+  const roleTeams = useMemo(() => {
+    return Object.fromEntries(
+      department.roles.map((role) => [role, getEmployeesByRole(department.id, role)])
+    );
+  }, [department.id, department.roles]);
 
   useEffect(() => {
     const sync = () => {
@@ -125,12 +136,15 @@ export function DepartmentPanel({
         <div className="mt-6 grid gap-8 lg:grid-cols-[1.1fr_1fr]">
           <section>
             <h4 className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--om-brown)]">Rollen</h4>
-            <p className="mt-2 text-sm text-[var(--om-ink)]/70">Selecteer een rol en zie welke capabilities dominant zijn.</p>
+            <p className="mt-2 text-sm text-[var(--om-ink)]/70">
+              Selecteer een rol en open direct bijbehorende profielpagina&apos;s.
+            </p>
             <div className="mt-4">
               <RoleGrid
                 roles={department.roles}
                 selectedRole={selectedRole}
                 onSelectRole={(role) => setSelectedRole(role || null)}
+                roleTeams={roleTeams}
               />
             </div>
           </section>
