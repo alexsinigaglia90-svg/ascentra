@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import * as THREE from "three";
 import styles from "./championship.module.css";
 import {
@@ -21,8 +29,10 @@ const CAMERA_POSE = {
   hero: new THREE.Vector3(5.6, 4.8, 7.2),
   challenge: new THREE.Vector3(4.7, 5.1, 5.6),
   ai: new THREE.Vector3(7.4, 6.2, 6.9),
-  results: new THREE.Vector3(6.2, 5.8, 7.8),
+  results: new THREE.Vector3(9.8, 6.4, 11.2),
 };
+
+const DUAL_ARENA_OFFSET = 2.45;
 
 const CAMERA_ORBIT_RADIUS = {
   challenge: 0.38,
@@ -87,6 +97,7 @@ export default function MixedPalletizingChampionship() {
   const [thinkingMessages, setThinkingMessages] = useState<SolverMessage[]>([]);
   const [aiBuildStep, setAiBuildStep] = useState(0);
   const [aiLayerStatus, setAiLayerStatus] = useState("Awaiting layer sequence");
+  const [conveyorLaunch, setConveyorLaunch] = useState<{ id: string; dx: number; dy: number } | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -102,6 +113,10 @@ export default function MixedPalletizingChampionship() {
   const aiBoxesGroupRef = useRef<THREE.Group | null>(null);
   const candidateGroupRef = useRef<THREE.Group | null>(null);
   const candidateLayoutGroupRef = useRef<THREE.Group | null>(null);
+  const dualArenaGroupRef = useRef<THREE.Group | null>(null);
+  const dualUserBoxesGroupRef = useRef<THREE.Group | null>(null);
+  const dualAiBoxesGroupRef = useRef<THREE.Group | null>(null);
+  const dualAiLightRef = useRef<THREE.SpotLight | null>(null);
   const ghostMeshRef = useRef<THREE.Mesh | null>(null);
   const pickMeshRef = useRef<THREE.Mesh | null>(null);
   const holoGridRef = useRef<THREE.Mesh | null>(null);
@@ -119,6 +134,7 @@ export default function MixedPalletizingChampionship() {
   const scenarioRef = useRef<Scenario>(scenario);
   const aiLayoutsRef = useRef<PlacedBox[][]>([]);
   const aiLayoutIndexRef = useRef(0);
+  const cursorScreenRef = useRef<{ x: number; y: number }>({ x: 720, y: 420 });
 
   const AI_LAYER_TEXT = useRef([
     "Layer 1 stabilised",
@@ -376,6 +392,77 @@ export default function MixedPalletizingChampionship() {
     candidateLayoutGroupRef.current = candidateLayoutGroup;
     scene.add(candidateLayoutGroup);
 
+    const dualArenaGroup = new THREE.Group();
+    dualArenaGroup.visible = false;
+    dualArenaGroupRef.current = dualArenaGroup;
+    scene.add(dualArenaGroup);
+
+    const createDualPlatform = (x: number, accent: string) => {
+      const root = new THREE.Group();
+      root.position.set(x, 0, 0);
+
+      const pedestal = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.72, 1.92, 0.28, 34),
+        new THREE.MeshStandardMaterial({
+          color: "#1a2431",
+          metalness: 0.38,
+          roughness: 0.36,
+          emissive: "#0c1420",
+          emissiveIntensity: 0.4,
+        })
+      );
+      pedestal.position.y = 0.05;
+      pedestal.receiveShadow = true;
+      root.add(pedestal);
+
+      const palletTop = new THREE.Mesh(
+        new THREE.BoxGeometry(PALLET_WIDTH * CELL_SIZE, CELL_SIZE * 0.34, PALLET_DEPTH * CELL_SIZE),
+        new THREE.MeshStandardMaterial({
+          color: "#755a43",
+          roughness: 0.7,
+          metalness: 0.08,
+        })
+      );
+      palletTop.position.y = CELL_SIZE * 0.17;
+      palletTop.castShadow = true;
+      palletTop.receiveShadow = true;
+      root.add(palletTop);
+
+      const grid = new THREE.GridHelper(PALLET_WIDTH * CELL_SIZE, PALLET_WIDTH, 0x3e5f8a, 0x243c59);
+      grid.position.y = CELL_SIZE * 0.36;
+      const mat = grid.material as THREE.Material;
+      mat.transparent = true;
+      mat.opacity = 0.26;
+      root.add(grid);
+
+      const outline = new THREE.LineSegments(
+        new THREE.EdgesGeometry(
+          new THREE.BoxGeometry(PALLET_WIDTH * CELL_SIZE, CELL_SIZE * 0.36, PALLET_DEPTH * CELL_SIZE)
+        ),
+        new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: 0.65 })
+      );
+      outline.position.y = CELL_SIZE * 0.37;
+      root.add(outline);
+
+      const boxesGroup = new THREE.Group();
+      root.add(boxesGroup);
+
+      dualArenaGroup.add(root);
+      return boxesGroup;
+    };
+
+    dualUserBoxesGroupRef.current = createDualPlatform(-DUAL_ARENA_OFFSET, "#5b8fc9");
+    dualAiBoxesGroupRef.current = createDualPlatform(DUAL_ARENA_OFFSET, "#6be9da");
+
+    const dualAiLight = new THREE.SpotLight("#6ff7ff", 1.8, 16, Math.PI / 8, 0.5, 1.3);
+    dualAiLight.position.set(DUAL_ARENA_OFFSET + 0.8, 4.6, 2.1);
+    dualAiLight.target.position.set(DUAL_ARENA_OFFSET, 0.45, 0);
+    dualAiLight.castShadow = true;
+    dualAiLight.shadow.mapSize.set(1024, 1024);
+    dualAiLightRef.current = dualAiLight;
+    dualArenaGroup.add(dualAiLight);
+    dualArenaGroup.add(dualAiLight.target);
+
     const holoGridGeo = new THREE.PlaneGeometry(4.1, 3.4, 18, 14);
     const holoGridMat = new THREE.MeshBasicMaterial({
       color: "#4fc6f6",
@@ -494,6 +581,26 @@ export default function MixedPalletizingChampionship() {
         key.intensity = THREE.MathUtils.lerp(key.intensity, aiMode ? 1.45 : 1.08, 0.04);
         rim.intensity = THREE.MathUtils.lerp(rim.intensity, aiMode ? 3.2 : 2.25, 0.05);
         fill.intensity = THREE.MathUtils.lerp(fill.intensity, aiMode ? 1.6 : 1.05, 0.05);
+      }
+
+      const comparisonMode = livePhase === "results";
+      if (palletGroupRef.current) {
+        palletGroupRef.current.visible = !comparisonMode;
+      }
+      if (userBoxesGroupRef.current) {
+        userBoxesGroupRef.current.visible = !comparisonMode;
+      }
+      if (aiBoxesGroupRef.current) {
+        aiBoxesGroupRef.current.visible = !comparisonMode;
+      }
+      if (dualArenaGroupRef.current) {
+        dualArenaGroupRef.current.visible = comparisonMode;
+      }
+
+      const aiShowcaseLight = dualAiLightRef.current;
+      if (aiShowcaseLight) {
+        const target = comparisonMode ? 2.4 : 0;
+        aiShowcaseLight.intensity = THREE.MathUtils.lerp(aiShowcaseLight.intensity, target, 0.06);
       }
 
       const pallet = palletGroupRef.current;
@@ -742,14 +849,62 @@ export default function MixedPalletizingChampionship() {
     });
   }, []);
 
+  const syncComparisonMeshes = useCallback((items: PlacedBox[], side: "user" | "ai") => {
+    const group = side === "user" ? dualUserBoxesGroupRef.current : dualAiBoxesGroupRef.current;
+    if (!group) {
+      return;
+    }
+
+    group.children.forEach((child) => {
+      group.remove(child);
+      const mesh = child as THREE.Mesh;
+      if (mesh.geometry) {
+        mesh.geometry.dispose();
+      }
+      if (mesh.material) {
+        const material = mesh.material as THREE.Material | THREE.Material[];
+        if (Array.isArray(material)) {
+          material.forEach((entry) => entry.dispose());
+        } else {
+          material.dispose();
+        }
+      }
+    });
+
+    items.forEach((box) => {
+      const geo = new THREE.BoxGeometry(box.w * CELL_SIZE, box.h * CELL_SIZE, box.d * CELL_SIZE);
+      const material = new THREE.MeshStandardMaterial({
+        color: side === "user" ? "#bf9a72" : "#57d4c6",
+        roughness: 0.36,
+        metalness: 0.16,
+        emissive: side === "user" ? "#7c5831" : "#2ca99f",
+        emissiveIntensity: side === "user" ? 0.05 : 0.22,
+      });
+      const mesh = new THREE.Mesh(geo, material);
+      mesh.position.set(
+        (box.x + box.w / 2 - PALLET_WIDTH / 2) * CELL_SIZE,
+        box.y * CELL_SIZE + box.h * CELL_SIZE / 2 + CELL_SIZE * 0.35,
+        (box.z + box.d / 2 - PALLET_DEPTH / 2) * CELL_SIZE
+      );
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      group.add(mesh);
+    });
+  }, []);
+
   useEffect(() => {
     syncPlacedMeshes(placed, "user");
-  }, [placed, syncPlacedMeshes]);
+    syncComparisonMeshes(placed, "user");
+  }, [placed, syncComparisonMeshes, syncPlacedMeshes]);
 
   useEffect(() => {
     const target = aiPlaced.slice(0, aiBuildStep);
     syncPlacedMeshes(target, "ai");
   }, [aiBuildStep, aiPlaced, syncPlacedMeshes]);
+
+  useEffect(() => {
+    syncComparisonMeshes(aiPlaced, "ai");
+  }, [aiPlaced, syncComparisonMeshes]);
 
   const updateGhost = useCallback(
     (x: number, z: number) => {
@@ -817,6 +972,8 @@ export default function MixedPalletizingChampionship() {
       if (phase !== "challenge" || !cameraRef.current) {
         return;
       }
+
+      cursorScreenRef.current = { x: event.clientX, y: event.clientY };
 
       const rect = canvas.getBoundingClientRect();
       pointerRef.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -1117,6 +1274,23 @@ export default function MixedPalletizingChampionship() {
     aiBuildStep > 0 && aiPlaced[aiBuildStep - 1]
       ? aiPlaced[aiBuildStep - 1].y + 1
       : 0;
+  const conveyorItems = useMemo(() => (queue.length > 0 ? [...queue, ...queue] : []), [queue]);
+
+  const selectCartonFromConveyor = (item: BoxQueueItem, event: ReactMouseEvent<HTMLButtonElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const pointer = cursorScreenRef.current;
+    const dx = THREE.MathUtils.clamp((pointer.x - cx) * 0.24, -140, 140);
+    const dy = THREE.MathUtils.clamp((pointer.y - cy) * 0.18 - 72, -150, -36);
+
+    setConveyorLaunch({ id: item.queueId, dx, dy });
+    setSelectedQueueId(item.queueId);
+
+    window.setTimeout(() => {
+      setConveyorLaunch((current) => (current?.id === item.queueId ? null : current));
+    }, 320);
+  };
 
   return (
     <main className={styles.page}>
@@ -1277,28 +1451,43 @@ export default function MixedPalletizingChampionship() {
 
         {phase === "challenge" && (
           <div className={styles.challengeBar}>
-            <section className={styles.staging}>
-              <h3 className={styles.stagingHead}>Incoming Cartons</h3>
-              <div className={styles.stagingGrid}>
-                {queue.map((item) => {
-                  const active = item.queueId === selectedQueueId;
-                  return (
-                    <button
-                      key={item.queueId}
-                      type="button"
-                      className={`${styles.boxCard} ${active ? styles.boxCardActive : ""}`}
-                      onClick={() => setSelectedQueueId(item.queueId)}
-                    >
-                      <div className={styles.boxLabel}>
-                        {item.sku.id} • {item.sku.label}
-                      </div>
-                      <div className={styles.boxSpec}>
-                        {item.sku.w}x{item.sku.d}x{item.sku.h} | {item.sku.weight}kg
-                        {item.sku.fragile ? " | Fragile" : ""}
-                      </div>
-                    </button>
-                  );
-                })}
+            <section className={styles.conveyorPanel}>
+              <h3 className={styles.stagingHead}>Carton Conveyor</h3>
+              <div className={styles.conveyorGlass}>
+                <div className={styles.conveyorTrack}>
+                  {conveyorItems.map((item, index) => {
+                    const active = item.queueId === selectedQueueId;
+                    const launch = conveyorLaunch?.id === item.queueId ? conveyorLaunch : null;
+                    const miniStyle = {
+                      ["--mini-w" as string]: `${18 + item.sku.w * 8}px`,
+                      ["--mini-h" as string]: `${10 + item.sku.h * 7}px`,
+                      ["--mini-d" as string]: `${12 + item.sku.d * 6}px`,
+                      ["--launch-x" as string]: `${launch?.dx ?? 0}px`,
+                      ["--launch-y" as string]: `${launch?.dy ?? 0}px`,
+                    } as CSSProperties;
+
+                    return (
+                      <button
+                        key={`${item.queueId}-${index}`}
+                        type="button"
+                        className={`${styles.conveyorCard} ${active ? styles.conveyorCardActive : ""} ${
+                          launch ? styles.conveyorCardLaunch : ""
+                        }`}
+                        onClick={(event) => selectCartonFromConveyor(item, event)}
+                        style={miniStyle}
+                        aria-label={`Select ${item.sku.id}`}
+                      >
+                        <div className={styles.miniBox} />
+                        <div className={styles.conveyorMeta}>
+                          <span className={styles.conveyorSku}>{item.sku.id}</span>
+                          <span className={styles.conveyorSpec}>
+                            {item.sku.w}x{item.sku.d}x{item.sku.h}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </section>
 
@@ -1331,8 +1520,8 @@ export default function MixedPalletizingChampionship() {
                 <h3>User pallet</h3>
                 <p className={styles.scoreMain}>{userMetrics.score}</p>
                 <p className={styles.scoreSub}>
-                  Fill {userMetrics.fillRate.toFixed(1)}% • Stability {userMetrics.stability.toFixed(1)}% • Safety{" "}
-                  {userMetrics.transportSafety.toFixed(1)}%
+                  Fill {userMetrics.fillRate.toFixed(1)}% • Stability {userMetrics.stability.toFixed(1)}% • Height
+                  efficiency {userMetrics.heightUsed.toFixed(1)}% • Boxes {userMetrics.placed}/{userMetrics.total}
                 </p>
                 <div className={styles.mapGrid}>
                   {userTopMap.flatMap((row, rowIndex) =>
@@ -1351,8 +1540,8 @@ export default function MixedPalletizingChampionship() {
                 <h3>Ascentra AI pallet</h3>
                 <p className={styles.scoreMain}>{aiMetrics.score}</p>
                 <p className={styles.scoreSub}>
-                  Fill {aiMetrics.fillRate.toFixed(1)}% • Stability {aiMetrics.stability.toFixed(1)}% • Safety{" "}
-                  {aiMetrics.transportSafety.toFixed(1)}%
+                  Fill {aiMetrics.fillRate.toFixed(1)}% • Stability {aiMetrics.stability.toFixed(1)}% • Height
+                  efficiency {aiMetrics.heightUsed.toFixed(1)}% • Boxes {aiMetrics.placed}/{aiMetrics.total}
                 </p>
                 <div className={styles.mapGrid}>
                   {aiTopMap.flatMap((row, rowIndex) =>
