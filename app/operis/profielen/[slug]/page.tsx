@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ProfileCommandDeck } from "../../components/ProfileCommandDeck";
 import {
   departments,
   employees,
   getEmployeeBySlug,
   getRolesForEmployee,
+  roleCapabilityMap,
 } from "../../data";
 
 type PageProps = {
@@ -44,6 +46,19 @@ export default async function OperisProfilePage({ params }: PageProps) {
   const departmentCoverage = departments.filter((department) =>
     assignedRoles.some((entry) => entry.departmentId === department.id)
   );
+  const capabilitySignals = Array.from(
+    new Set(
+      assignedRoles.flatMap((entry) => {
+        return roleCapabilityMap[entry.departmentId]?.[entry.role] ?? [];
+      })
+    )
+  ).slice(0, 12);
+
+  const signatureMetrics = person.signatureMetrics ?? [
+    "Operational stabilization under pressure",
+    "Cross-functional delivery ownership",
+    "Consistent KPI execution cadence",
+  ];
 
   return (
     <main
@@ -73,6 +88,14 @@ export default async function OperisProfilePage({ params }: PageProps) {
           </div>
 
           <p className="mt-8 max-w-4xl text-base leading-relaxed text-black/80">{person.summary}</p>
+
+          <ProfileCommandDeck
+            summaryHighlights={person.profileHighlights}
+            timeline={person.timeline ?? []}
+            caseStudies={person.caseStudies ?? []}
+            capabilitySignals={capabilitySignals}
+            signatureMetrics={signatureMetrics}
+          />
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
             <div>

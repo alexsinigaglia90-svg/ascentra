@@ -18,6 +18,19 @@ export type EmployeeProfile = {
   certifications: string[];
   sectorExperience: string[];
   profileHighlights: string[];
+  signatureMetrics?: string[];
+  timeline?: Array<{
+    period: string;
+    title: string;
+    impact: string;
+  }>;
+  caseStudies?: Array<{
+    title: string;
+    context: string;
+    action: string;
+    outcome: string;
+    linkedRoles: string[];
+  }>;
 };
 
 export type SimulatorInputs = {
@@ -457,6 +470,49 @@ export const employees: EmployeeProfile[] = [
       "Richtte een control-room ritme in waarmee backlog in 6 weken met 31% daalde.",
       "Bouwde een operations review cadence op C-level niveau met dagelijks uitvoerbaar ritme.",
     ],
+    signatureMetrics: ["31% backlog reductie", "99,1% outbound OTIF", "220+ FTE leadership span"],
+    timeline: [
+      {
+        period: "2024 - 2025",
+        title: "Interim Control Room Leadership",
+        impact:
+          "Stuurde realtime operatie tijdens automatiseringstransitie en borgde dagelijkse SLA-control.",
+      },
+      {
+        period: "2022 - 2024",
+        title: "Operations Stabilization Program",
+        impact:
+          "Herstelde ritme, teamdiscipline en escalatieflow in een multi-client 3PL omgeving.",
+      },
+      {
+        period: "2018 - 2022",
+        title: "Warehouse Transformation Lead",
+        impact:
+          "Introduceerde KPI-cadence en verbeterde flow op inbound/outbound met blijvende governance.",
+      },
+    ],
+    caseStudies: [
+      {
+        title: "Peak Season Recovery",
+        context:
+          "Een e-fulfilment site raakte uit balans door een onverwachte volumestijging in Q4.",
+        action:
+          "Martijn richtte een daily control tower war-room in, herprioriteerde golfplanning en herstelde shift ownership.",
+        outcome:
+          "Binnen zes weken daalde de backlog met 31% en bleef OTIF boven 98,5% tijdens piek.",
+        linkedRoles: ["Control Room Lead", "Warehouse Operations Manager", "Start-up & Go-Live Manager"],
+      },
+      {
+        title: "Go-Live Governance Blueprint",
+        context:
+          "Nieuwe mechanisatie ging live zonder stabiele escalatie- en decisioning-ritmes.",
+        action:
+          "Ontwierp operationeel governance-model met cut-off management, exception board en KPI cockpit ritme.",
+        outcome:
+          "Operationele verstoringen daalden zichtbaar en management kreeg voorspelbare stuurinformatie.",
+        linkedRoles: ["Interim Ops Manager", "Exception Manager"],
+      },
+    ],
   },
   {
     slug: "noor-van-dijk",
@@ -482,6 +538,7 @@ export const employees: EmployeeProfile[] = [
       "Bouwde een ochtend-control cadence die escalatietijd met 40% verkortte.",
       "Verbeterde inbound dock turn-around met 18% zonder extra headcount.",
     ],
+    signatureMetrics: ["99,4% inventory reliability", "18% snellere dock turnaround"],
   },
   {
     slug: "jeroen-smit",
@@ -507,6 +564,7 @@ export const employees: EmployeeProfile[] = [
       "Introduceerde cross-functional war-room ritme voor piekoperaties.",
       "Verlaagde expedite-kosten met 23% door realtime beslisregels.",
     ],
+    signatureMetrics: ["98,8% cut-off reliability", "23% lagere expedite-kosten"],
   },
   {
     slug: "farah-el-baz",
@@ -532,6 +590,7 @@ export const employees: EmployeeProfile[] = [
       "Zette een rolling capacity model op voor 5 DC locaties.",
       "Verhoogde forecast reliability voor piekperiode met 14 punten.",
     ],
+    signatureMetrics: ["27% minder planafwijking", "5-site capacity model"],
   },
   {
     slug: "bas-koster",
@@ -557,6 +616,7 @@ export const employees: EmployeeProfile[] = [
       "Verhoogde outbound OTIF naar 99,1% tijdens transitieperiode.",
       "Implementeerde dagstart- en weekritme op managementniveau.",
     ],
+    signatureMetrics: ["99,1% OTIF", "4 maanden turnaround"],
   },
   {
     slug: "ilse-wouters",
@@ -582,6 +642,7 @@ export const employees: EmployeeProfile[] = [
       "Richtte een CI-board op met aantoonbare weekly savings.",
       "Verkortte onboarding tijd van team leads met 30%.",
     ],
+    signatureMetrics: ["11% throughput uplift", "30% snellere onboarding"],
   },
   {
     slug: "dennis-verbraak",
@@ -607,6 +668,7 @@ export const employees: EmployeeProfile[] = [
       "Zette exception dashboards op voor control-room sturing.",
       "Verlaagde wave planning rework met 22%.",
     ],
+    signatureMetrics: ["16% route efficiency", "22% minder wave rework"],
   },
   {
     slug: "eva-janssen",
@@ -632,6 +694,7 @@ export const employees: EmployeeProfile[] = [
       "Verhoogde on-time departure via constraint-based planning.",
       "Borgde transport SLA control in S&OP cadans.",
     ],
+    signatureMetrics: ["19% minder linehaul variatie", "Hogere on-time departure"],
   },
 ];
 
