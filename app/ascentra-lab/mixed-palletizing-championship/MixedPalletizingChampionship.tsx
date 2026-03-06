@@ -24,6 +24,12 @@ const CAMERA_POSE = {
   results: new THREE.Vector3(6.2, 5.8, 7.8),
 };
 
+const CAMERA_ORBIT_RADIUS = {
+  challenge: 0.38,
+  ai: 0.86,
+  results: 0.54,
+};
+
 const LOOK_AT = new THREE.Vector3(0, 0.8, 0);
 
 const emptyMetrics: RunMetrics = {
@@ -40,10 +46,13 @@ const emptyMetrics: RunMetrics = {
 const AI_MESSAGES = [
   "Scanning carton dimensions",
   "Mapping load distribution",
-  "Exploring solution space",
+  "Exploring stacking permutations",
+  "Evaluating load stability",
+  "Synthesising candidate layer families",
   "Evaluating stability",
+  "Projecting center-of-mass heatmaps",
   "Reducing compression risk",
-  "Optimising fill efficiency",
+  "Optimizing pallet density",
   "Candidate solutions: 42 -> 11 -> 3 -> 1",
   "Optimal pallet configuration identified",
 ];
@@ -94,10 +103,18 @@ export default function MixedPalletizingChampionship() {
   const ghostMeshRef = useRef<THREE.Mesh | null>(null);
   const pickMeshRef = useRef<THREE.Mesh | null>(null);
   const holoGridRef = useRef<THREE.Mesh | null>(null);
+  const heatmapPlaneRef = useRef<THREE.Mesh | null>(null);
+  const hoverCellRef = useRef<THREE.Mesh | null>(null);
+  const ghostTargetRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
+  const keyLightRef = useRef<THREE.DirectionalLight | null>(null);
+  const rimLightRef = useRef<THREE.PointLight | null>(null);
+  const fillLightRef = useRef<THREE.PointLight | null>(null);
   const phaseRef = useRef<GamePhase>("hero");
   const selectedItemRef = useRef<BoxQueueItem | null>(null);
   const rotationRef = useRef(false);
   const stabilityRef = useRef(100);
+  const placedRef = useRef<PlacedBox[]>([]);
+  const scenarioRef = useRef<Scenario>(scenario);
 
   const hoveredPlacementRef = useRef<{
     x: number;
@@ -132,6 +149,14 @@ export default function MixedPalletizingChampionship() {
   useEffect(() => {
     stabilityRef.current = userMetrics.stability;
   }, [userMetrics.stability]);
+
+  useEffect(() => {
+    placedRef.current = placed;
+  }, [placed]);
+
+  useEffect(() => {
+    scenarioRef.current = scenario;
+  }, [scenario]);
 
   const resetRun = useCallback((base: Scenario) => {
       const nextQueue = expandScenarioQueue(base);
@@ -191,13 +216,15 @@ export default function MixedPalletizingChampionship() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.12;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     rendererRef.current = renderer;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#090f18");
-    scene.fog = new THREE.Fog("#090f18", 5, 15);
+    scene.background = new THREE.Color("#070d15");
+    scene.fog = new THREE.Fog("#070d15", 4, 18);
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(
@@ -210,11 +237,14 @@ export default function MixedPalletizingChampionship() {
     camera.lookAt(LOOK_AT);
     cameraRef.current = camera;
 
-    const ambient = new THREE.AmbientLight("#8eb7e6", 0.42);
+    const ambient = new THREE.AmbientLight("#7ea8d8", 0.34);
     scene.add(ambient);
 
+    const hemi = new THREE.HemisphereLight("#84b8f3", "#0b1119", 0.24);
+    scene.add(hemi);
+
     const key = new THREE.DirectionalLight("#e5f3ff", 1.12);
-    key.position.set(5.2, 8, 5.2);
+    key.position.set(6.6, 9.2, 4.4);
     key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
     key.shadow.camera.near = 1;
@@ -223,17 +253,25 @@ export default function MixedPalletizingChampionship() {
     key.shadow.camera.right = 8;
     key.shadow.camera.top = 8;
     key.shadow.camera.bottom = -8;
+    key.shadow.bias = -0.00015;
+    keyLightRef.current = key;
     scene.add(key);
 
-    const rim = new THREE.PointLight("#3b74b8", 2.1, 20, 1.9);
-    rim.position.set(-4.8, 3.5, -3.7);
+    const rim = new THREE.PointLight("#5ac0ff", 2.6, 24, 1.9);
+    rim.position.set(-5.5, 4.4, -4.6);
+    rimLightRef.current = rim;
     scene.add(rim);
+
+    const fill = new THREE.PointLight("#5a78a6", 1.2, 18, 2);
+    fill.position.set(4.2, 2.8, -3.1);
+    fillLightRef.current = fill;
+    scene.add(fill);
 
     const floorGeo = new THREE.PlaneGeometry(22, 22);
     const floorMat = new THREE.MeshStandardMaterial({
-      color: "#181f2a",
-      roughness: 0.75,
-      metalness: 0.1,
+      color: "#111922",
+      roughness: 0.34,
+      metalness: 0.38,
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
@@ -260,6 +298,31 @@ export default function MixedPalletizingChampionship() {
     palletBase.receiveShadow = true;
     palletBase.castShadow = true;
     palletGroup.add(palletBase);
+
+    const palletGrid = new THREE.GridHelper(
+      PALLET_WIDTH * CELL_SIZE,
+      PALLET_WIDTH,
+      0x3f5f85,
+      0x28405f
+    );
+    palletGrid.position.y = CELL_SIZE * 0.36;
+    const gridMat = palletGrid.material as THREE.Material;
+    gridMat.opacity = 0.28;
+    gridMat.transparent = true;
+    palletGroup.add(palletGrid);
+
+    const palletOutline = new THREE.LineSegments(
+      new THREE.EdgesGeometry(
+        new THREE.BoxGeometry(PALLET_WIDTH * CELL_SIZE, CELL_SIZE * 0.36, PALLET_DEPTH * CELL_SIZE)
+      ),
+      new THREE.LineBasicMaterial({
+        color: "#6ca4e6",
+        transparent: true,
+        opacity: 0.66,
+      })
+    );
+    palletOutline.position.y = CELL_SIZE * 0.37;
+    palletGroup.add(palletOutline);
 
     for (let i = -4; i <= 4; i += 2) {
       const beamGeo = new THREE.BoxGeometry(CELL_SIZE * 0.35, CELL_SIZE * 0.24, PALLET_DEPTH * CELL_SIZE);
@@ -296,6 +359,33 @@ export default function MixedPalletizingChampionship() {
     holoGrid.position.set(0, CELL_SIZE * 0.62, 0);
     holoGridRef.current = holoGrid;
     scene.add(holoGrid);
+
+    const heatmap = new THREE.Mesh(
+      new THREE.PlaneGeometry(PALLET_WIDTH * CELL_SIZE, PALLET_DEPTH * CELL_SIZE),
+      new THREE.MeshBasicMaterial({
+        color: "#4bcbff",
+        transparent: true,
+        opacity: 0,
+        blending: THREE.AdditiveBlending,
+      })
+    );
+    heatmap.rotation.x = -Math.PI / 2;
+    heatmap.position.y = CELL_SIZE * 0.38;
+    heatmapPlaneRef.current = heatmap;
+    scene.add(heatmap);
+
+    const hoverCell = new THREE.Mesh(
+      new THREE.PlaneGeometry(CELL_SIZE, CELL_SIZE),
+      new THREE.MeshBasicMaterial({
+        color: "#76ceff",
+        transparent: true,
+        opacity: 0,
+      })
+    );
+    hoverCell.rotation.x = -Math.PI / 2;
+    hoverCell.position.y = CELL_SIZE * 0.39;
+    hoverCellRef.current = hoverCell;
+    scene.add(hoverCell);
 
     const ghost = new THREE.Mesh(
       new THREE.BoxGeometry(CELL_SIZE, CELL_SIZE, CELL_SIZE),
@@ -347,12 +437,34 @@ export default function MixedPalletizingChampionship() {
                 ? CAMERA_POSE.results
                 : CAMERA_POSE.ai;
 
-        cam.position.lerp(target, 0.03);
+        const orbitStrength =
+          livePhase === "challenge"
+            ? CAMERA_ORBIT_RADIUS.challenge
+            : livePhase === "results"
+              ? CAMERA_ORBIT_RADIUS.results
+              : livePhase === "aiThinking" || livePhase === "aiBuild"
+                ? CAMERA_ORBIT_RADIUS.ai
+                : 0.15;
+
+        const orbitX = Math.sin(t * (livePhase === "aiThinking" ? 1.2 : 0.7)) * orbitStrength;
+        const orbitZ = Math.cos(t * (livePhase === "aiThinking" ? 1.1 : 0.6)) * orbitStrength;
+
+        cam.position.lerp(new THREE.Vector3(target.x + orbitX, target.y, target.z + orbitZ), 0.03);
 
         const look = LOOK_AT.clone();
-        look.x = Math.sin(t * 0.52) * 0.08;
-        look.z = Math.cos(t * 0.43) * 0.08;
+        look.x = Math.sin(t * 0.52) * 0.06;
+        look.z = Math.cos(t * 0.43) * 0.06;
         cam.lookAt(look);
+      }
+
+      const key = keyLightRef.current;
+      const rim = rimLightRef.current;
+      const fill = fillLightRef.current;
+      if (key && rim && fill) {
+        const aiMode = livePhase === "aiThinking" || livePhase === "aiBuild";
+        key.intensity = THREE.MathUtils.lerp(key.intensity, aiMode ? 1.45 : 1.08, 0.04);
+        rim.intensity = THREE.MathUtils.lerp(rim.intensity, aiMode ? 3.2 : 2.25, 0.05);
+        fill.intensity = THREE.MathUtils.lerp(fill.intensity, aiMode ? 1.6 : 1.05, 0.05);
       }
 
       const pallet = palletGroupRef.current;
@@ -375,23 +487,50 @@ export default function MixedPalletizingChampionship() {
         pick.geometry.dispose();
         pick.geometry = new THREE.BoxGeometry(w, h, d);
         pick.position.y = 0.9 + Math.sin(t * 2.4) * 0.08;
+        pick.rotation.y = THREE.MathUtils.lerp(pick.rotation.y, rotationRef.current ? Math.PI * 0.5 : 0, 0.12);
       } else if (pick) {
         pick.visible = false;
+      }
+
+      const ghost = ghostMeshRef.current;
+      if (ghost && ghost.visible) {
+        ghost.position.lerp(ghostTargetRef.current, 0.28);
+      }
+
+      const hoverCell = hoverCellRef.current;
+      if (hoverCell) {
+        const hover = hoveredPlacementRef.current;
+        const hoverMat = hoverCell.material as THREE.MeshBasicMaterial;
+        if (hover && livePhase === "challenge") {
+          hoverCell.visible = true;
+          hoverCell.position.set(
+            (hover.x + 0.5 - PALLET_WIDTH / 2) * CELL_SIZE,
+            CELL_SIZE * 0.395,
+            (hover.z + 0.5 - PALLET_DEPTH / 2) * CELL_SIZE
+          );
+          hoverMat.opacity = THREE.MathUtils.lerp(hoverMat.opacity, hover.valid ? 0.38 : 0.26, 0.22);
+          hoverMat.color.set(hover.valid ? "#5bd7ff" : "#ff8186");
+        } else {
+          hoverMat.opacity = THREE.MathUtils.lerp(hoverMat.opacity, 0, 0.2);
+          if (hoverMat.opacity < 0.02) {
+            hoverCell.visible = false;
+          }
+        }
       }
 
       if (livePhase === "aiThinking") {
         const g = candidateGroupRef.current;
         if (g) {
           if (g.children.length < 26 && Math.random() < 0.42) {
-            const cw = (Math.random() * 2 + 1) * CELL_SIZE;
-            const ch = (Math.random() * 2 + 1) * CELL_SIZE;
-            const cd = (Math.random() * 2 + 1) * CELL_SIZE;
+            const cw = (Math.random() * 3.6 + 1) * CELL_SIZE;
+            const ch = (Math.random() * 2.6 + 0.6) * CELL_SIZE;
+            const cd = (Math.random() * 3.2 + 1) * CELL_SIZE;
             const m = new THREE.Mesh(
               new THREE.BoxGeometry(cw, ch, cd),
               new THREE.MeshBasicMaterial({
-                color: "#4cd7ff",
+                color: Math.random() > 0.72 ? "#7fffe6" : "#4cd7ff",
                 transparent: true,
-                opacity: 0.22,
+                opacity: 0.2,
                 wireframe: true,
               })
             );
@@ -426,7 +565,14 @@ export default function MixedPalletizingChampionship() {
         const holo = holoGridRef.current;
         if (holo) {
           const material = holo.material as THREE.MeshBasicMaterial;
-          material.opacity = 0.18 + Math.sin(t * 2.6) * 0.07;
+          material.opacity = 0.2 + Math.sin(t * 2.6) * 0.08;
+          holo.rotation.z += 0.0018;
+        }
+
+        const heatmap = heatmapPlaneRef.current;
+        if (heatmap) {
+          const heatMat = heatmap.material as THREE.MeshBasicMaterial;
+          heatMat.opacity = 0.09 + Math.sin(t * 3.1) * 0.04;
         }
       } else {
         const g = candidateGroupRef.current;
@@ -443,6 +589,12 @@ export default function MixedPalletizingChampionship() {
         if (holo) {
           const material = holo.material as THREE.MeshBasicMaterial;
           material.opacity = Math.max(0, material.opacity - 0.02);
+        }
+
+        const heatmap = heatmapPlaneRef.current;
+        if (heatmap) {
+          const heatMat = heatmap.material as THREE.MeshBasicMaterial;
+          heatMat.opacity = Math.max(0, heatMat.opacity - 0.025);
         }
       }
 
@@ -506,13 +658,17 @@ export default function MixedPalletizingChampionship() {
 
     items.forEach((box) => {
       const geo = new THREE.BoxGeometry(box.w * CELL_SIZE, box.h * CELL_SIZE, box.d * CELL_SIZE);
-      const color = mode === "user" ? "#cba980" : "#4bc6bd";
+      const sizeSignal = Math.min(1, (box.w * box.d + box.h) / 18);
+      const color =
+        mode === "user"
+          ? new THREE.Color().setHSL(0.08 + sizeSignal * 0.045, 0.34, box.fragile ? 0.62 : 0.56)
+          : new THREE.Color().setHSL(0.48 + sizeSignal * 0.05, 0.53, box.fragile ? 0.54 : 0.48);
       const mat = new THREE.MeshStandardMaterial({
         color,
-        roughness: 0.45,
-        metalness: 0.08,
+        roughness: 0.4,
+        metalness: 0.12,
         emissive: mode === "ai" ? "#2ca8a0" : "#7a4f1f",
-        emissiveIntensity: mode === "ai" ? 0.2 : 0.06,
+        emissiveIntensity: mode === "ai" ? 0.18 : 0.05,
       });
       const mesh = new THREE.Mesh(geo, mat);
 
@@ -523,6 +679,16 @@ export default function MixedPalletizingChampionship() {
       );
       mesh.castShadow = true;
       mesh.receiveShadow = true;
+
+      const edges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(geo),
+        new THREE.LineBasicMaterial({
+          color: mode === "ai" ? "#6be4d9" : "#d6b793",
+          transparent: true,
+          opacity: 0.34,
+        })
+      );
+      mesh.add(edges);
       group.add(mesh);
     });
   }, []);
@@ -566,14 +732,24 @@ export default function MixedPalletizingChampionship() {
         return;
       }
 
+      const wasVisible = ghost.visible;
       ghost.visible = true;
-      ghost.geometry.dispose();
-      ghost.geometry = new THREE.BoxGeometry(w * CELL_SIZE, h * CELL_SIZE, d * CELL_SIZE);
-      ghost.position.set(
+      const previousSize = ghost.userData.size as string | undefined;
+      const nextSize = `${w}-${d}-${h}`;
+      if (previousSize !== nextSize) {
+        ghost.geometry.dispose();
+        ghost.geometry = new THREE.BoxGeometry(w * CELL_SIZE, h * CELL_SIZE, d * CELL_SIZE);
+        ghost.userData.size = nextSize;
+      }
+
+      ghostTargetRef.current.set(
         (x + w / 2 - PALLET_WIDTH / 2) * CELL_SIZE,
         check.y * CELL_SIZE + h * CELL_SIZE / 2 + CELL_SIZE * 0.35,
         (z + d / 2 - PALLET_DEPTH / 2) * CELL_SIZE
       );
+      if (!wasVisible) {
+        ghost.position.copy(ghostTargetRef.current);
+      }
 
       const material = ghost.material as THREE.MeshStandardMaterial;
       material.color.set(check.valid ? "#3fe095" : "#ff6f75");
@@ -607,7 +783,43 @@ export default function MixedPalletizingChampionship() {
         const gridZ = Math.floor(localZ);
 
         if (gridX >= 0 && gridZ >= 0 && gridX < PALLET_WIDTH && gridZ < PALLET_DEPTH) {
-          updateGhost(gridX, gridZ);
+          const candidates: Array<{ x: number; z: number; distance: number; valid: boolean }> = [];
+          for (let ox = -1; ox <= 1; ox += 1) {
+            for (let oz = -1; oz <= 1; oz += 1) {
+              const x = gridX + ox;
+              const z = gridZ + oz;
+              if (x < 0 || z < 0 || x >= PALLET_WIDTH || z >= PALLET_DEPTH) {
+                continue;
+              }
+              const d = Math.hypot(localX - (x + 0.5), localZ - (z + 0.5));
+              const probe = selectedItemRef.current;
+              let valid = false;
+              if (probe) {
+                const w = rotationRef.current ? probe.sku.d : probe.sku.w;
+                const depth = rotationRef.current ? probe.sku.w : probe.sku.d;
+                valid = isValidPlacement(
+                  placedRef.current,
+                  scenarioRef.current,
+                  x,
+                  z,
+                  w,
+                  depth,
+                  probe.sku.h
+                ).valid;
+              }
+              candidates.push({ x, z, distance: d, valid });
+            }
+          }
+
+          const nearestValid = candidates
+            .filter((candidate) => candidate.valid)
+            .sort((a, b) => a.distance - b.distance)[0];
+          const fallback = candidates.sort((a, b) => a.distance - b.distance)[0];
+          const target = nearestValid ?? fallback;
+
+          if (target) {
+            updateGhost(target.x, target.z);
+          }
           return;
         }
       }
@@ -741,19 +953,46 @@ export default function MixedPalletizingChampionship() {
 
     setAiBuildStep(0);
 
-    const interval = window.setInterval(() => {
-      setAiBuildStep((step) => {
-        if (step >= aiPlaced.length) {
-          window.clearInterval(interval);
-          setPhase("results");
-          return step;
-        }
-        return step + 1;
-      });
-    }, 120);
+    if (aiPlaced.length === 0) {
+      setPhase("results");
+      return;
+    }
 
-    return () => window.clearInterval(interval);
-  }, [phase, aiPlaced.length]);
+    let cancelled = false;
+    let index = 0;
+    let timeoutId = 0;
+
+    const tick = () => {
+      if (cancelled) {
+        return;
+      }
+
+      setAiBuildStep(index + 1);
+
+      const current = aiPlaced[index];
+      index += 1;
+
+      if (index >= aiPlaced.length) {
+        timeoutId = window.setTimeout(() => {
+          if (!cancelled) {
+            setPhase("results");
+          }
+        }, 420);
+        return;
+      }
+
+      const next = aiPlaced[index];
+      const layerChanged = next.y > current.y;
+      timeoutId = window.setTimeout(tick, layerChanged ? 300 : 90);
+    };
+
+    timeoutId = window.setTimeout(tick, 180);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [phase, aiPlaced]);
 
   const missionCards = [
     { label: "Scenario ID", value: scenario.scenarioId },
@@ -770,6 +1009,10 @@ export default function MixedPalletizingChampionship() {
 
   const benchmark = 71;
   const userVsAi = aiMetrics.score - userMetrics.score;
+  const aiCurrentLayer =
+    aiBuildStep > 0 && aiPlaced[aiBuildStep - 1]
+      ? aiPlaced[aiBuildStep - 1].y + 1
+      : 0;
 
   return (
     <main className={styles.page}>
@@ -919,7 +1162,8 @@ export default function MixedPalletizingChampionship() {
                 )}
                 {phase === "aiBuild" && (
                   <p className={styles.panelText}>
-                    AI build reveal in progress: layer-by-layer optimisation ({aiBuildStep}/{aiPlaced.length})
+                    AI build reveal in progress: layer {aiCurrentLayer}, precision placement ({aiBuildStep}/
+                    {aiPlaced.length})
                   </p>
                 )}
               </div>

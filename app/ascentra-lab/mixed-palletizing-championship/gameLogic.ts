@@ -39,14 +39,19 @@ const pick = <T>(arr: T[]): T => arr[rand(0, arr.length - 1)];
 
 const buildSku = (index: number): ScenarioSku => {
   const footprint = pick([
+    [1, 2],
+    [2, 1],
     [2, 2],
-    [2, 3],
-    [3, 2],
     [3, 3],
+    [3, 2],
+    [2, 3],
+    [4, 3],
     [2, 4],
     [4, 2],
+    [5, 2],
+    [2, 5],
   ]);
-  const h = pick([1, 1, 2, 2, 2, 3]);
+  const h = pick([1, 1, 2, 2, 3, 3, 4]);
   const fragile = Math.random() < 0.2;
   const density = fragile ? 0.6 : Math.random() * 0.9 + 0.7;
   const volume = footprint[0] * footprint[1] * h;
@@ -57,7 +62,7 @@ const buildSku = (index: number): ScenarioSku => {
     w: footprint[0],
     d: footprint[1],
     h,
-    quantity: rand(3, 7),
+    quantity: rand(2, 8),
     weight: Math.round(volume * density),
     fragile,
   };
@@ -313,12 +318,50 @@ function scoreCandidate(
   candidate: PlacementCandidate,
   sku: ScenarioSku
 ): number {
+  const sameLayer = placed.filter((item) => item.y === candidate.y);
+  const layerCoherence =
+    sameLayer.length === 0
+      ? 0.68
+      : sameLayer.reduce((sum, item) => {
+          const touchX =
+            item.x + item.w === candidate.x || candidate.x + candidate.w === item.x;
+          const overlapZ =
+            candidate.z < item.z + item.d && candidate.z + candidate.d > item.z;
+          const touchZ =
+            item.z + item.d === candidate.z || candidate.z + candidate.d === item.z;
+          const overlapX =
+            candidate.x < item.x + item.w && candidate.x + candidate.w > item.x;
+          return sum + (touchX && overlapZ ? 1 : 0) + (touchZ && overlapX ? 1 : 0);
+        }, 0) /
+        Math.max(1, sameLayer.length);
+
+  const flatTopBonus =
+    placed.length === 0
+      ? 0
+      : placed.reduce((sum, item) => {
+          const supportX =
+            candidate.x < item.x + item.w && candidate.x + candidate.w > item.x;
+          const supportZ =
+            candidate.z < item.z + item.d && candidate.z + candidate.d > item.z;
+          return sum + (supportX && supportZ && item.y + item.h === candidate.y ? 1 : 0);
+        }, 0) /
+        Math.max(1, candidate.w * candidate.d);
+
   const center = 1 - centerDistancePenalty(candidate.x, candidate.z, candidate.w, candidate.d);
   const lowBias = 1 - candidate.y / 12;
-  const area = (candidate.w * candidate.d) / 12;
+  const area = (candidate.w * candidate.d) / 16;
   const fragileBias = sku.fragile ? (candidate.y > 1 ? 1 : 0.2) : 0;
+  const layerPenalty = candidate.y > 0 ? 0 : 0.12;
 
-  return center * 0.34 + lowBias * 0.28 + area * 0.24 + fragileBias * 0.14;
+  return (
+    center * 0.24 +
+    lowBias * 0.2 +
+    area * 0.15 +
+    fragileBias * 0.14 +
+    layerCoherence * 0.16 +
+    flatTopBonus * 0.17 +
+    layerPenalty
+  );
 }
 
 function generateCandidates(placed: PlacedBox[], scenario: Scenario, sku: ScenarioSku) {
@@ -407,5 +450,13 @@ export function solveAiLayout(scenario: Scenario): PlacedBox[] {
     });
   });
 
-  return placed;
+  return placed.sort((a, b) => {
+    if (a.y !== b.y) {
+      return a.y - b.y;
+    }
+    if (a.z !== b.z) {
+      return a.z - b.z;
+    }
+    return a.x - b.x;
+  });
 }
