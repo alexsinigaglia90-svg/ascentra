@@ -5,6 +5,7 @@ const labels = {
     staffing: "Detachering",
     capabilities: "Capabilities",
     platform: "Platform",
+    lab: "Ascentra Lab",
     products: "Products",
     contact: "Contact",
   },
@@ -12,6 +13,7 @@ const labels = {
     staffing: "Detachering",
     capabilities: "Capaciteiten",
     platform: "Platform",
+    lab: "Ascentra Lab",
     products: "Producten",
     contact: "Contact",
   },
@@ -27,6 +29,7 @@ export default function Nav({ language, onLanguageChange }: NavProps) {
     { label: labels[language].staffing, href: "/operis/" },
     { label: labels[language].capabilities, href: "#system" },
     { label: labels[language].platform, href: "#platform" },
+    { label: labels[language].lab, href: "/ascentra-lab" },
     { label: labels[language].products, href: "#pillars" },
     { label: labels[language].contact, href: "#contact" },
   ];
