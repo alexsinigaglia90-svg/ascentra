@@ -76,7 +76,7 @@
   border: 1px solid #7f9bc73a;
   background: linear-gradient(165deg, #0b121d, #0b1320 42%, #0a111a 100%);
   overflow: hidden;
-  min-height: min(78vh, 760px);
+  min-height: min(84vh, 820px);
   box-shadow:
     0 30px 70px rgba(2, 6, 10, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -84,7 +84,7 @@
 
 .canvas {
   width: 100%;
-  height: min(78vh, 760px);
+  height: min(84vh, 820px);
   min-height: 430px;
   display: block;
 }
@@ -93,6 +93,8 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .heroOverlay {
@@ -310,18 +312,21 @@
   right: 1rem;
   bottom: 1rem;
   pointer-events: auto;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
   gap: 0.8rem;
-  flex-wrap: wrap;
   align-items: stretch;
+  max-height: calc(100% - 8.4rem);
+  min-height: 180px;
 }
 
 .staging {
-  flex: 1 1 470px;
   border: 1px solid #7394c242;
   border-radius: 1rem;
   background: #0b1624cf;
   padding: 0.7rem;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .stagingHead {
@@ -336,7 +341,7 @@
   display: grid;
   gap: 0.43rem;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  max-height: 176px;
+  max-height: clamp(132px, 22vh, 230px);
   overflow: auto;
 }
 
@@ -372,13 +377,15 @@
 }
 
 .controls {
-  flex: 0 1 340px;
   border: 1px solid #7296c43f;
   border-radius: 1rem;
   background: #0d1a2bcf;
   padding: 0.7rem;
   display: grid;
   gap: 0.6rem;
+  align-content: start;
+  min-height: 0;
+  overflow: auto;
 }
 
 .hint {
@@ -521,6 +528,9 @@
   .challengeBar {
     position: static;
     margin: 0.8rem;
+    grid-template-columns: 1fr;
+    max-height: none;
+    min-height: 0;
   }
 
   .panel {
