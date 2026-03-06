@@ -798,7 +798,7 @@ export default function MixedPalletizingChampionship() {
                     Can you beat the Ascentra AI? Step into a premium warehouse intelligence simulation and
                     engineer a mixed pallet under pressure.
                   </p>
-                  <button type="button" className={styles.primaryBtn} onClick={beginChallenge}>
+                  <button type="button" className={`${styles.primaryBtn} ${styles.heroCta}`} onClick={beginChallenge}>
                     Start Challenge
                   </button>
                 </div>
@@ -821,7 +821,7 @@ export default function MixedPalletizingChampionship() {
                     </div>
                   ))}
                 </div>
-                <div className={styles.buttonRow} style={{ marginTop: "0.9rem" }}>
+                <div className={styles.panelActions}>
                   <button type="button" className={styles.primaryBtn} onClick={launchMission}>
                     Begin Mission
                   </button>
