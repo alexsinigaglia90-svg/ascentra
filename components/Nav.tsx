@@ -1,5 +1,8 @@
 type Language = "en" | "nl";
 
+/** Casella — het medewerkersportaal (loonstroken, uren, verlof, declaraties). */
+const CASELLA_URL = "https://casella.ascentra.nl";
+
 const labels = {
   en: {
     staffing: "Detachering",
@@ -8,6 +11,7 @@ const labels = {
     lab: "Ascentra Lab",
     products: "Products",
     contact: "Contact",
+    login: "Employee login",
   },
   nl: {
     staffing: "Detachering",
@@ -16,6 +20,7 @@ const labels = {
     lab: "Ascentra Lab",
     products: "Producten",
     contact: "Contact",
+    login: "Medewerker login",
   },
 };
 
@@ -72,6 +77,12 @@ export default function Nav({ language, onLanguageChange }: NavProps) {
               </a>
             ))}
           </nav>
+          <a
+            href={CASELLA_URL}
+            className="rounded-full bg-white px-4 py-2 text-sm font-medium tracking-wide text-[var(--ink)] shadow-[0_6px_18px_rgba(0,0,0,0.18)] transition hover:bg-white/90"
+          >
+            {labels[language].login}
+          </a>
         </div>
       </div>
       <div className="container-shell pb-4 md:hidden">
@@ -97,7 +108,7 @@ export default function Nav({ language, onLanguageChange }: NavProps) {
             </button>
           </div>
         </div>
-        <nav aria-label="Homepage sections mobile" className="flex gap-2">
+        <nav aria-label="Homepage sections mobile" className="flex flex-wrap gap-2">
           {links.map((link) => (
             <a
               key={link.label}
@@ -107,6 +118,12 @@ export default function Nav({ language, onLanguageChange }: NavProps) {
               {link.label}
             </a>
           ))}
+          <a
+            href={CASELLA_URL}
+            className="rounded-full bg-white px-3 py-1.5 text-xs font-medium tracking-wide text-[var(--ink)]"
+          >
+            {labels[language].login}
+          </a>
         </nav>
       </div>
     </header>
