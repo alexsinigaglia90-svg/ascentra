@@ -1,21 +1,22 @@
 # Ascentra Homepage
 
-Premium single-page homepage built with Next.js (App Router), TypeScript, Tailwind, and Framer Motion.
+Single-page homepage built with Next.js (App Router, static export) and TypeScript.
+Source design: Claude Design handoff "Ascentra | Website" → `Ascentra Homepage`.
+
+- `app/page.tsx` → `components/home/AscentraHome.tsx` (page markup + animation loop)
+- `components/home/frescoes.ts` — animated line studies in the three triptych panels
+- `components/home/heroField.ts` — drifting geometric field behind the hero mark
+- `app/globals.css` — all styles
+- `public/assets/ascentra-mark.png` — hero mark
+- `public/_redirects` — retired routes (/operis, /ascentra-lab, /whatsapp) redirect to `/` on Cloudflare Pages
 
 ## Local development
 
 - Install: `npm install`
 - Dev server: `npm run dev`
-- Production build (static export): `npm run build`
+- Production build (static export): `npm run build` → `out/`
 
-After build, static files are generated in `out/`.
+## Cloudflare Pages
 
-## Cloudflare Pages (important)
-
-Use these project settings:
-
-- Framework preset: `None` (or Next.js with static output)
-- Build command: `npm run build`
-- Build output directory: `out`
-
-If output directory is not `out`, Cloudflare can deploy but still return 404 on the root URL.
+Deployed by `.github/workflows/deploy-pages.yml` on push to `main`.
+Build command `npm run build`, output directory `out`.

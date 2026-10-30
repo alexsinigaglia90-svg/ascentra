@@ -1,34 +1,5 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import Contact from "@/components/Contact";
-import Footer from "@/components/Footer";
-import HeroVideo from "@/components/HeroVideo";
-import Intro from "@/components/Intro";
-import PlatformTeaser from "@/components/PlatformTeaser";
-import ProofBand from "@/components/ProofBand";
-import TriadPillars from "@/components/TriadPillars";
-
-export type Language = "en" | "nl";
+import AscentraHome from "@/components/home/AscentraHome";
 
 export default function Home() {
-  const [language, setLanguage] = useState<Language>("en");
-
-  useEffect(() => {
-    document.documentElement.lang = language;
-  }, [language]);
-
-  return (
-    <>
-      <HeroVideo language={language} onLanguageChange={setLanguage} />
-      <main>
-        <Intro />
-        <TriadPillars />
-        <PlatformTeaser />
-        <ProofBand />
-        <Contact language={language} />
-      </main>
-      <Footer />
-    </>
-  );
+  return <AscentraHome />;
 }

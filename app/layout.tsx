@@ -1,22 +1,34 @@
-import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Fraunces, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-sans",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
+  style: ["normal", "italic"],
+  axes: ["opsz"],
 });
 
-const cormorant = Cormorant_Garamond({
-  variable: "--font-serif",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400", "500", "600"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
-  title: "Ascentra | Stately strategy. Relentless execution.",
+  title: "Ascentra",
   description:
-    "Ascentra unites strategic supply chain leadership, operational warehousing scale, and product-grade logistics innovation.",
+    "The Ascentra Group: interim management (Operis), supply chain consultancy (Ascentra) and in-house development (Astra).",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#04101c",
 };
 
 export default function RootLayout({
@@ -26,9 +38,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${cormorant.variable} antialiased`}>
-        {children}
-      </body>
+      <body className={`${fraunces.variable} ${inter.variable} ${geistMono.variable}`}>{children}</body>
     </html>
   );
 }
